@@ -54,11 +54,14 @@ class _ConsolePromptState extends State<ConsolePrompt> {
               height: double.infinity,
               child: TextField(
                 controller: _controller,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: colorScheme.surface.withSurfaceTint(context, 4),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.zero,
+                    borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.fromLTRB(16, 0, 0, 10),
+                  contentPadding: const EdgeInsets.fromLTRB(16, 0, 0, 10),
                 ),
               ),
             ),
@@ -69,6 +72,7 @@ class _ConsolePromptState extends State<ConsolePrompt> {
             child: FilledButton(
               style: FilledButton.styleFrom(
                 shape: const RoundedRectangleBorder(),
+                backgroundColor: colorScheme.primary,
               ),
               onPressed: _active
                   ? () {
