@@ -1,54 +1,56 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ztp_projekt/manage_database/controllers/providers.dart';
+import 'package:ztp_projekt/database/controllers/providers.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
+
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  late Future<bool> future;
+  @override
+  void initState() {
+    future = initialize(ref);
+    super.initState();
+  }
+
+  Future<bool> initialize(
+    WidgetRef ref,
+  ) async {
+    // return ref.read(databaseNotifierProvider.notifier).checkIsDatabaseMounted();
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final manageDatabaseNotifier =
-            ref.watch(manageDatabaseNotifierProvider.notifier);
-        final getDatabaseNotifier =
-            ref.watch(getDatabaseNotifierProvider.notifier);
+        final databaseNotifier = ref.watch(databaseNotifierProvider.notifier);
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Bookshelf system'),
           ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: () async {
-                    await manageDatabaseNotifier.insertAuthor();
-                  },
-                  child: const Text('Insert Book'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await getDatabaseNotifier.getBooks();
-                  },
-                  child: const Text('Show Books'),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Insert Author'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await getDatabaseNotifier.getAuthors();
-                  },
-                  child: const Text('Show Authors'),
-                ),
-              ],
-            ),
+          body: FutureBuilder<bool>(
+            future: future,
+            builder: (context, snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.data != null &&
+                  snapshot.connectionState == ConnectionState.done) {
+                return Text('Snapshot.data: ${snapshot.data}');
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
-              await ref.read(getDatabaseNotifierProvider.notifier).getBooks();
+              await databaseNotifier.listAllFiles();
             },
             tooltip: 'Increment',
             child: const Icon(Icons.add),

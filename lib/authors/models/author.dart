@@ -18,4 +18,12 @@ extension AuthorEx on Author {
         'firstName': firstName,
         'lastName': lastName,
       };
+
+  Author toAuthor(Map<String, Object?> authorMap) {
+    return Author(
+      id: authorMap['id'] as int,
+      firstName: authorMap['firstName'] as String,
+      lastName: authorMap['lastName'] as String,
+    );
+  }
 }
