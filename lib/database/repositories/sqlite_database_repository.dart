@@ -22,20 +22,35 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   Future<void> _setDatabasesPath() async {
     final Directory documentsDirectory =
         await getApplicationDocumentsDirectory();
+
     final Directory databaseDirectory =
-        Directory('${documentsDirectory.path}/bookshelf/');
+        Directory('${documentsDirectory.path}\\bookshelf\\');
     if (!await databaseDirectory.exists()) {
       await databaseDirectory.create(recursive: true);
     }
+
     await databaseFactoryFfi
-        .setDatabasesPath('${documentsDirectory.path}/bookshelf');
+        .setDatabasesPath('${documentsDirectory.path}\\bookshelf');
+  }
+
+  @override
+  bool isDbOpened() {
+    if (_db != null && _db!.isOpen) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
   Future<Either<BookshelfException, Unit>> createDb(String databaseName) async {
     late Either<BookshelfException, Unit> result;
 
-    final databasePath = join(await getDatabasesPath(), databaseName);
+    final databasePath = join(
+      await databaseFactoryFfi.getDatabasesPath(),
+      '$databaseName.db',
+    );
+
     if (!await databaseFactoryFfi.databaseExists(databasePath)) {
       _db = await databaseFactoryFfi.openDatabase(
         databasePath,
@@ -54,7 +69,10 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   Future<Either<BookshelfException, Unit>> openDb(String databaseName) async {
     late Either<BookshelfException, Unit> result;
     if (_db != null && !_db!.isOpen) {
-      final databasePath = join(await getDatabasesPath(), databaseName);
+      final databasePath = join(
+        await databaseFactoryFfi.getDatabasesPath(),
+        databaseName,
+      );
       _db = await databaseFactoryFfi.openDatabase(
         databasePath,
       );
@@ -100,7 +118,10 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   ) async {
     late Either<BookshelfException, List<Map<String, Object?>>> result;
     if (_db != null && _db!.isOpen) {
-      final response = await _db!.query(tableName, whereArgs: [id]);
+      final response = await _db!.query(
+        tableName,
+        where: id.toString(),
+      );
       result = right(response);
     } else {
       result = left(const BookshelfException.databaseIsClosed());
@@ -182,5 +203,14 @@ class SqliteDatabaseRepository implements DatabaseInterface {
       result = left(const BookshelfException.databaseIsClosed());
     }
     return result;
+  }
+
+  @override
+  String getDatabasePath() {
+    if (_db != null && _db!.isOpen) {
+      return _db!.database.path;
+    } else {
+      return '';
+    }
   }
 }

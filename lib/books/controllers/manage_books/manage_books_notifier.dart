@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/books/controllers/get_books/get_books_notifier.dart';
@@ -19,6 +21,7 @@ class ManageBooksNotifier extends StateNotifier<ManageBooksState> {
   }
 
   Future<void> insert(Map<String, Object?> values) async {
+    log('[ManageBooksNotifier] insert()');
     state = state.copyWith(isLoading: true);
     final response = await _interface.insert(values);
     if (response.isRight()) {

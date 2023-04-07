@@ -2,8 +2,10 @@ import 'package:dartz/dartz.dart';
 import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
 
 abstract class DatabaseInterface {
+  bool isDbOpened();
   Future<Either<BookshelfException, Unit>> createDb(String databaseName);
   Future<Either<BookshelfException, Unit>> openDb(String databaseName);
+  String getDatabasePath();
   Future<void> closeDb();
   Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll(
     String tableName,

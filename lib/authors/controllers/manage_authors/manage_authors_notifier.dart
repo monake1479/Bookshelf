@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffier.dart';
@@ -15,6 +17,7 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
   final AuthorInterface _interface;
 
   Future<void> insert(Map<String, Object?> values) async {
+    log('[ManageAuthorsNotifier] insert()');
     state = state.copyWith(isLoading: true);
     final response = await _interface.insert(values);
     if (response.isRight()) {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/interfaces/author_interface.dart';
@@ -33,10 +35,7 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
     final response = await _interface.get(id);
     if (response.isRight()) {
       final List<Author> tempList = List<Author>.from(state.authors);
-      final index = tempList.indexWhere((element) => element.id == id);
-      tempList.removeWhere((element) => element.id == id);
-      tempList.insert(index, response.getRightOrThrow());
-
+      tempList.add(response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,
         authors: tempList,

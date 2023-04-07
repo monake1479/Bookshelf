@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -15,36 +16,41 @@ class DatabaseNotifier extends StateNotifier<DatabaseState> {
     state = DatabaseState.initial();
   }
 
-  Future<void> create(String databaseName) async {
-    state = state.copyWith(isLoading: true);
-    // final response = await _databaseInterface.create(databaseName);
-    // if (response.isRight()) {
-    //   state = state.copyWith(
-    //     isLoading: false,
-    //     failureOrSuccessOption: some(right(unit)),
-    //   );
-    // } else {
-    //   state = state.copyWith(
-    //     isLoading: false,
-    //     failureOrSuccessOption: some(left(response.getLeftOrThrow())),
-    //   );
-    // }
+  bool isDbOpened() {
+    return _databaseInterface.isDbOpened();
   }
 
-  Future<void> open() async {
+  Future<void> create(String databaseName) async {
     state = state.copyWith(isLoading: true);
-    // final response = await _databaseInterface.open('');
-    // if (response.isRight()) {
-    //   state = state.copyWith(
-    //     isLoading: false,
-    //     failureOrSuccessOption: some(right(response.getRightOrThrow())),
-    //   );
-    // } else {
-    //   state = state.copyWith(
-    //     isLoading: false,
-    //     failureOrSuccessOption: some(left(response.getLeftOrThrow())),
-    //   );
-    // }
+    final response = await _databaseInterface.createDb(databaseName);
+    if (response.isRight()) {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(right(unit)),
+      );
+    } else {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(left(response.getLeftOrThrow())),
+      );
+    }
+  }
+
+  Future<void> open(String databaseName) async {
+    state = state.copyWith(isLoading: true);
+    final response = await _databaseInterface.openDb('$databaseName.db');
+    log('response: ${response}');
+    if (response.isRight()) {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(right(response.getRightOrThrow())),
+      );
+    } else {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(left(response.getLeftOrThrow())),
+      );
+    }
   }
 
   Future<void> close() async {
@@ -65,18 +71,23 @@ class DatabaseNotifier extends StateNotifier<DatabaseState> {
     await launchUrl(documentsUri);
   }
 
-  Future<List<String>> listAllFiles() async {
+  Future<void> listAllFiles() async {
+    state = state.copyWith(isLoading: true);
     final Directory documentsDirectory =
         await getApplicationDocumentsDirectory();
 
-    final List<FileSystemEntity> something =
-        Directory('${documentsDirectory.path}/bookshelf/').listSync();
+    final List<FileSystemEntity> systemFiles =
+        Directory('${documentsDirectory.path}\\bookshelf\\').listSync();
     final List<String> filesPaths = [];
-    for (final file in something) {
+    for (final file in systemFiles) {
       if (file.path.endsWith('.db')) {
         filesPaths.add(file.path);
       }
     }
-    return filesPaths;
+    state = state.copyWith(isLoading: false, databaseList: filesPaths);
+  }
+
+  String getDatabasePath() {
+    return _databaseInterface.getDatabasePath().toLowerCase();
   }
 }
