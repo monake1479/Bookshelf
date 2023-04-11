@@ -17,4 +17,7 @@ abstract class BookInterface {
   Future<Either<BookshelfException, Unit>> delete(
     int id,
   );
+  Future<Either<BookshelfException, Unit>> findRelation(
+    int authorId,
+  );
 }

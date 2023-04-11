@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
@@ -65,8 +63,8 @@ class _SelectOrCreateDatabaseDialogState
         ],
       ),
       content: SizedBox(
-        height: 150,
-        width: 300,
+        height: MediaQuery.of(context).size.height * 0.45,
+        width: MediaQuery.of(context).size.width * 0.30,
         child: TabBarView(
           controller: _tabController,
           physics: const NeverScrollableScrollPhysics(),
@@ -82,7 +80,17 @@ class _SelectOrCreateDatabaseDialogState
                 );
               },
             ),
-            const _CreateDatabaseWidget(),
+            _CreateDatabaseWidget(
+              onCreateTap: () {
+                setState(() {
+                  creationMode = false;
+                });
+                _tabController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 200),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -91,7 +99,10 @@ class _SelectOrCreateDatabaseDialogState
 }
 
 class _CreateDatabaseWidget extends StatefulWidget {
-  const _CreateDatabaseWidget();
+  const _CreateDatabaseWidget({
+    required this.onCreateTap,
+  });
+  final void Function() onCreateTap;
 
   @override
   State<_CreateDatabaseWidget> createState() => _CreateDatabaseWidgetState();
@@ -104,8 +115,6 @@ class _CreateDatabaseWidgetState extends State<_CreateDatabaseWidget> {
     final theme = Theme.of(context);
     return Consumer(
       builder: (context, ref, child) {
-        final databaseNotifier = ref.watch(databaseNotifierProvider.notifier);
-
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,20 +139,7 @@ class _CreateDatabaseWidgetState extends State<_CreateDatabaseWidget> {
                     shape: const RoundedRectangleBorder(),
                   ),
                   onPressed: () async {
-                    if (_controller.text.isNotEmpty) {
-                      await databaseNotifier.create(_controller.text);
-                      if (ref.read(databaseNotifierProvider).isException) {
-                        await BookshelfExceptionDialog.show(
-                          context,
-                          ref.read(databaseNotifierProvider).getException!,
-                          () {
-                            Navigator.of(context).pop();
-                          },
-                        );
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    }
+                    await _createButtonAction(ref, context);
                   },
                   icon: const Icon(
                     Icons.add,
@@ -156,6 +152,25 @@ class _CreateDatabaseWidgetState extends State<_CreateDatabaseWidget> {
         );
       },
     );
+  }
+
+  Future<void> _createButtonAction(WidgetRef ref, BuildContext context) async {
+    final databaseNotifier = ref.read(databaseNotifierProvider.notifier);
+    if (_controller.text.isNotEmpty) {
+      await databaseNotifier.create(_controller.text);
+      if (ref.read(databaseNotifierProvider).isException) {
+        await BookshelfExceptionDialog.show(
+          context,
+          ref.read(databaseNotifierProvider).getException!,
+          () {
+            Navigator.of(context).pop();
+          },
+        );
+      } else {
+        await ref.read(databaseNotifierProvider.notifier).listAllFiles();
+        widget.onCreateTap();
+      }
+    }
   }
 }
 
@@ -193,9 +208,7 @@ class _SelectDatabaseWidget extends StatelessWidget {
                       ),
                       title: Text(databaseState.databasesNames[index]),
                       onTap: () async {
-                        await databaseNotifier
-                            .open(databaseState.databasesNames[index]);
-                        Navigator.of(context).pop();
+                        await _databaseFileTap(context, ref, index);
                       },
                     );
                   },
@@ -234,5 +247,22 @@ class _SelectDatabaseWidget extends StatelessWidget {
         }
       },
     );
+  }
+
+  Future<void> _databaseFileTap(
+    BuildContext context,
+    WidgetRef ref,
+    int index,
+  ) async {
+    final databaseNotifier = ref.read(databaseNotifierProvider.notifier);
+    final databaseState = ref.read(databaseNotifierProvider);
+    if (databaseNotifier.getDatabasePath() ==
+        databaseState.databaseList[index].toLowerCase()) {
+      Navigator.of(context).pop();
+      await databaseNotifier.close();
+    } else {
+      Navigator.of(context).pop();
+      await databaseNotifier.open(databaseState.databasesNames[index]);
+    }
   }
 }

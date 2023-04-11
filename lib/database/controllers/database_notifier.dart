@@ -5,13 +5,24 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffier.dart';
+import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_notifier.dart';
+import 'package:ztp_projekt/books/controllers/get_books/get_books_notifier.dart';
+import 'package:ztp_projekt/books/controllers/manage_books/manage_books_notifier.dart';
+import 'package:ztp_projekt/common/utils/database_variables.dart';
 import 'package:ztp_projekt/common/utils/either_extension.dart';
 import 'package:ztp_projekt/database/controllers/database_state.dart';
 import 'package:ztp_projekt/database/interfaces/database_interface.dart';
 
 class DatabaseNotifier extends StateNotifier<DatabaseState> {
-  DatabaseNotifier(this._databaseInterface) : super(DatabaseState.initial());
+  DatabaseNotifier(
+    this._databaseInterface,
+    this._manageAuthorsNotifier,
+    this._manageBooksNotifier,
+  ) : super(DatabaseState.initial());
   final DatabaseInterface _databaseInterface;
+  final ManageAuthorsNotifier _manageAuthorsNotifier;
+  final ManageBooksNotifier _manageBooksNotifier;
   void reset() {
     state = DatabaseState.initial();
   }
@@ -39,15 +50,22 @@ class DatabaseNotifier extends StateNotifier<DatabaseState> {
   Future<void> open(String databaseName) async {
     state = state.copyWith(isLoading: true);
     final response = await _databaseInterface.openDb('$databaseName.db');
-    log('response: ${response}');
+
     if (response.isRight()) {
+      await _manageAuthorsNotifier.getAll();
+      await _manageBooksNotifier.getAll();
       state = state.copyWith(
         isLoading: false,
+        isDatabaseOpened: true,
         failureOrSuccessOption: some(right(response.getRightOrThrow())),
       );
     } else {
+      await close();
+      _manageAuthorsNotifier.reset();
+      _manageBooksNotifier.reset();
       state = state.copyWith(
         isLoading: false,
+        isDatabaseOpened: false,
         failureOrSuccessOption: some(left(response.getLeftOrThrow())),
       );
     }
@@ -56,7 +74,12 @@ class DatabaseNotifier extends StateNotifier<DatabaseState> {
   Future<void> close() async {
     state = state.copyWith(isLoading: true);
     await _databaseInterface.closeDb();
-    state = state.copyWith(isLoading: false);
+    _manageAuthorsNotifier.reset();
+    _manageBooksNotifier.reset();
+    state = state.copyWith(
+      isLoading: false,
+      isDatabaseOpened: false,
+    );
   }
 
   Future<void> openDatabaseFolder() async {

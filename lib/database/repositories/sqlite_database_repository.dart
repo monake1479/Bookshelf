@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -6,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
+import 'package:ztp_projekt/common/models/table_name.dart';
 import 'package:ztp_projekt/common/utils/database_variables.dart';
 import 'package:ztp_projekt/database/interfaces/database_interface.dart';
 
@@ -68,27 +70,28 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   @override
   Future<Either<BookshelfException, Unit>> openDb(String databaseName) async {
     late Either<BookshelfException, Unit> result;
-    if (_db != null && !_db!.isOpen) {
-      final databasePath = join(
-        await databaseFactoryFfi.getDatabasesPath(),
-        databaseName,
-      );
-      _db = await databaseFactoryFfi.openDatabase(
-        databasePath,
-      );
-      if (_db == null) {
-        result = left(
-          const BookshelfException.custom(
-            message:
-                'Something went wrong while opening database, please check database name and path.',
-          ),
-        );
-      } else {
-        result = right(unit);
-      }
-    } else {
-      result = left(const BookshelfException.databaseAlreadyOpened());
+    if (_db != null && _db!.isOpen) {
+      await closeDb();
     }
+
+    final databasePath = join(
+      await databaseFactoryFfi.getDatabasesPath(),
+      databaseName,
+    );
+    _db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+    );
+    if (_db == null) {
+      result = left(
+        const BookshelfException.custom(
+          message:
+              'Something went wrong while opening database, please check database name and path.',
+        ),
+      );
+    } else {
+      result = right(unit);
+    }
+
     return result;
   }
 
@@ -98,12 +101,18 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   }
 
   @override
-  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll(
-    String tableName,
-  ) async {
+  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll({
+    String? tableName,
+    String? rawQuery,
+  }) async {
     late Either<BookshelfException, List<Map<String, Object?>>> result;
+    late List<Map<String, Object?>> response;
     if (_db != null && _db!.isOpen) {
-      final response = await _db!.query(tableName);
+      if (tableName != null) {
+        response = await _db!.query(tableName);
+      } else {
+        response = await _db!.rawQuery(getAllBooks);
+      }
       result = right(response);
     } else {
       result = left(const BookshelfException.databaseIsClosed());
@@ -212,5 +221,31 @@ class SqliteDatabaseRepository implements DatabaseInterface {
     } else {
       return '';
     }
+  }
+
+  @override
+  Future<Either<BookshelfException, Unit>> findAuthorRelation(
+    int authorId,
+  ) async {
+    late Either<BookshelfException, Unit> result;
+    if (_db != null && _db!.isOpen) {
+      final response = await _db!.query(
+        TableName.books.name,
+        where: 'authorId = ?',
+        whereArgs: [authorId],
+      );
+      if (response.isEmpty) {
+        result = right(unit);
+      } else {
+        result = left(
+          const BookshelfException.custom(
+            message: 'Author has relation with book. Please remove book first.',
+          ),
+        );
+      }
+    } else {
+      result = left(const BookshelfException.databaseIsClosed());
+    }
+    return result;
   }
 }

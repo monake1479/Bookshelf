@@ -13,7 +13,7 @@ class AuthorRepository implements AuthorInterface {
   @override
   Future<Either<BookshelfException, List<Author>>> getAll() async {
     late Either<BookshelfException, List<Author>> result;
-    final response = await _interface.getAll(TableName.authors.name);
+    final response = await _interface.getAll(tableName: TableName.authors.name);
     if (response.isRight()) {
       final List<Author> authors = [];
       final escapedResponse = response.getRightOrThrow();

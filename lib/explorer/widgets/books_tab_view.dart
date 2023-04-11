@@ -93,32 +93,44 @@ class BooksTabView extends StatelessWidget {
         Consumer(
           builder: (context, ref, child) {
             final getBooksState = ref.watch(getBooksNotifierProvider);
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => RecordsRow(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+            final manageBooksNotifier =
+                ref.watch(manageBooksNotifierProvider.notifier);
+            if (getBooksState.books.isEmpty) {
+              return const SliverPadding(
+                padding: EdgeInsets.only(top: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Center(
+                    child: Text('Books table is empty'),
                   ),
-                  children: getBooksState.books
-                      .map(
-                        (book) => Column(
-                          children: [
-                            Text(book.title),
-                            Text('${book.authorId}'),
-                            Text(book.publisher),
-                            Text('${book.publicationDate}'),
-                            Text(book.isbnNumber),
-                            Text('${book.price}'),
-                            RecordActions(),
-                          ],
-                        ),
-                      )
-                      .toList(),
                 ),
-                childCount: 30,
-              ),
-            );
+              );
+            } else {
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => RecordsRow(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    children: [
+                      Text(getBooksState.books[index].title),
+                      Text(getBooksState.books[index].authorName),
+                      Text(getBooksState.books[index].publisher),
+                      Text('${getBooksState.books[index].publicationDate}'),
+                      Text(getBooksState.books[index].isbnNumber),
+                      Text('${getBooksState.books[index].price}'),
+                      RecordActions(
+                        onDelete: () async {
+                          await manageBooksNotifier
+                              .delete(getBooksState.books[index].id);
+                        },
+                      ),
+                    ],
+                  ),
+                  childCount: getBooksState.books.length,
+                ),
+              );
+            }
           },
         ),
       ],

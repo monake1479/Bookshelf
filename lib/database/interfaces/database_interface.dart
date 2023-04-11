@@ -7,9 +7,10 @@ abstract class DatabaseInterface {
   Future<Either<BookshelfException, Unit>> openDb(String databaseName);
   String getDatabasePath();
   Future<void> closeDb();
-  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll(
-    String tableName,
-  );
+  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll({
+    String? tableName,
+    String? rawQuery,
+  });
   Future<Either<BookshelfException, List<Map<String, Object?>>>> get(
     String tableName,
     int id,
@@ -27,4 +28,5 @@ abstract class DatabaseInterface {
     String tableName,
     int id,
   );
+  Future<Either<BookshelfException, Unit>> findAuthorRelation(int authorId);
 }

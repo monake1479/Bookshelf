@@ -4,7 +4,8 @@ String createBooksTableQuery =
     'CREATE TABLE `${TableName.books.name}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , `authorId` INTEGER NOT NULL , `title` TEXT NOT NULL ,`publisher` TEXT NOT NULL , `publicationDate` TEXT NOT NULL , `isbnNumber` TEXT NOT NULL , `price` DOUBLE NOT NULL ,  FOREIGN KEY(authorId) REFERENCES ${TableName.authors.name}(id)) ';
 String createAuthorsTableQuery =
     'CREATE TABLE `${TableName.authors.name}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , `firstName` TEXT NOT NULL , `lastName` TEXT NOT NULL )';
-
+String getAllBooks =
+    "select books.id, authors.firstName || ' ' || authors.lastName as authorName , books.title, books.publisher, books.publicationDate, books.isbnNumber, books.price from books INNER JOIN authors on authors.id==books.authorId";
 const List<Map<String, Object?>> initAuthorsTable = [
   {
     'id': null,

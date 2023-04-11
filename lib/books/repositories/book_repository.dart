@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:ztp_projekt/books/interfaces/book_interface.dart';
 import 'package:ztp_projekt/books/models/book.dart';
 import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
 import 'package:ztp_projekt/common/models/table_name.dart';
+import 'package:ztp_projekt/common/utils/database_variables.dart';
 import 'package:ztp_projekt/common/utils/either_extension.dart';
 import 'package:ztp_projekt/database/interfaces/database_interface.dart';
 
@@ -13,7 +16,7 @@ class BookRepository implements BookInterface {
   @override
   Future<Either<BookshelfException, List<Book>>> getAll() async {
     late Either<BookshelfException, List<Book>> result;
-    final response = await _interface.getAll(TableName.books.name);
+    final response = await _interface.getAll(rawQuery: getAllBooks);
     if (response.isRight()) {
       final List<Book> books = [];
       final escapedResponse = response.getRightOrThrow();
@@ -87,6 +90,20 @@ class BookRepository implements BookInterface {
     final response = await _interface.delete(TableName.books.name, id);
     if (response.isRight()) {
       result = right(unit);
+    } else {
+      result = left(response.getLeftOrThrow());
+    }
+    return result;
+  }
+
+  @override
+  Future<Either<BookshelfException, Unit>> findRelation(
+    int authorId,
+  ) async {
+    late Either<BookshelfException, Unit> result;
+    final response = await _interface.findAuthorRelation(authorId);
+    if (response.isRight()) {
+      result = right(response.getRightOrThrow());
     } else {
       result = left(response.getLeftOrThrow());
     }

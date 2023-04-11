@@ -20,8 +20,7 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
   @override
   void initState() {
     _tabController = TabController(vsync: this, length: 2);
-
-    if (ref.read(databaseNotifierProvider.notifier).isDbOpened()) {
+    if (!ref.read(databaseNotifierProvider.notifier).isDbOpened()) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(databaseNotifierProvider.notifier).listAllFiles();
         _showDbChangeDialog(context);
@@ -34,6 +33,7 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final databaseState = ref.watch(databaseNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -104,14 +104,24 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                if (ref.read(databaseNotifierProvider).isDatabaseOpened)
-                  const BooksTabView()
-                else
-                  const EmptyTabView(),
-                if (ref.read(databaseNotifierProvider).isDatabaseOpened)
-                  const AuthorsTabView()
-                else
-                  const EmptyTabView(),
+                Builder(
+                  builder: (context) {
+                    if (databaseState.isDatabaseOpened) {
+                      return const BooksTabView();
+                    } else {
+                      return const EmptyTabView();
+                    }
+                  },
+                ),
+                Builder(
+                  builder: (context) {
+                    if (databaseState.isDatabaseOpened) {
+                      return const AuthorsTabView();
+                    } else {
+                      return const EmptyTabView();
+                    }
+                  },
+                )
               ],
             ),
           ),

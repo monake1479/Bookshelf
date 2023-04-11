@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:ztp_projekt/common/shortcuts/bookshelf_shortcuts.dart';
 import 'package:ztp_projekt/explorer/pages/records_page.dart';
 
+
 class BookshelfApp extends StatelessWidget {
   const BookshelfApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Bookshelf',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/interfaces/author_interface.dart';
@@ -35,6 +33,7 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
     final response = await _interface.get(id);
     if (response.isRight()) {
       final List<Author> tempList = List<Author>.from(state.authors);
+      tempList.removeWhere((element) => element.id == id);
       tempList.add(response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,
@@ -47,5 +46,13 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
         exception: response.getLeftOrThrow(),
       );
     }
+  }
+
+  void delete(int id) {
+    state = state.copyWith(isLoading: true);
+    final tempList = List<Author>.from(state.authors);
+    final authorById = tempList.firstWhere((element) => element.id == id);
+    tempList.remove(authorById);
+    state = state.copyWith(isLoading: false, authors: tempList);
   }
 }
