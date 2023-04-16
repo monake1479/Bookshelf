@@ -112,110 +112,19 @@ class AuthorsTabView extends StatelessWidget {
     );
   }
 
-  Future<void> _onAuthorEditTap(
-    WidgetRef ref,
-    BuildContext context,
-    int index,
-  ) async {
-    final authorFormState = ref.read(authorFormNotifierProvider);
-    final authorFormNotifier = ref.read(authorFormNotifierProvider.notifier);
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Padding(
-            padding: EdgeInsets.fromLTRB(10, 0, 0, 3),
-            child: Text(
-              'Edit author',
-              textAlign: TextAlign.center,
-            ),
-          ),
-          contentPadding: const EdgeInsets.all(8),
-          content: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.45,
-            width: MediaQuery.of(context).size.width * 0.30,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: TextFormField(
-                    initialValue: authorFormState.firstName,
-                    decoration: InputDecoration(
-                      labelText: 'First name',
-                      errorText: authorFormState.isFirstNameValid
-                          ? null
-                          : 'Field cannot be empty',
-                    ),
-                    onChanged: (firstName) {
-                      ref
-                          .read(authorFormNotifierProvider.notifier)
-                          .updateFirstName(firstName);
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: TextFormField(
-                    initialValue: authorFormState.lastName,
-                    decoration: InputDecoration(
-                      labelText: 'Last name',
-                      errorText: authorFormState.isLastNameValid
-                          ? null
-                          : 'Field cannot be empty',
-                    ),
-                    onChanged: authorFormNotifier.updateLastName,
-                  ),
-                ),
-                FilledButton.tonalIcon(
-                  style: FilledButton.styleFrom(
-                    shape: const RoundedRectangleBorder(),
-                  ),
-                  onPressed: () async {
-                    if (authorFormState.isFirstNameValid &&
-                        authorFormState.isLastNameValid) {
-                      await authorFormNotifier.updateAuthor();
-                      if (ref.read(manageAuthorsNotifierProvider).isException) {
-                        await BookshelfExceptionDialog.show(
-                          context,
-                          ref.read(manageAuthorsNotifierProvider).getException!,
-                          () {
-                            Navigator.of(context).pop();
-                          },
-                        );
-                      }
-
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.edit,
-                  ),
-                  label: const Text('Edit'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _onAuthorDeleteTap(
     WidgetRef ref,
     BuildContext context,
-    int index,
+    int authorId,
   ) async {
-    final getAuthorsState = ref.read(getAuthorsNotifierProvider);
-    final manageAuthorsNotifier =
-        ref.read(manageAuthorsNotifierProvider.notifier);
+    await ref.read(manageAuthorsNotifierProvider.notifier).delete(authorId);
 
-    await manageAuthorsNotifier.delete(getAuthorsState.authors[index].id);
     if (ref.read(manageAuthorsNotifierProvider).isException) {
       await BookshelfExceptionDialog.show(
         context,
         ref.read(manageAuthorsNotifierProvider).getException!,
         () {
+          ref.read(manageAuthorsNotifierProvider.notifier).getAll();
           Navigator.of(context).pop();
         },
       );
