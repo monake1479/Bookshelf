@@ -53,8 +53,7 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
   void delete(int id) {
     state = state.copyWith(isLoading: true);
     final tempList = List<Author>.from(state.authors);
-    final authorById = tempList.firstWhere((element) => element.id == id);
-    tempList.remove(authorById);
+    tempList.removeWhere((element) => element.id == id);
     state = state.copyWith(isLoading: false, authors: tempList);
   }
 }
