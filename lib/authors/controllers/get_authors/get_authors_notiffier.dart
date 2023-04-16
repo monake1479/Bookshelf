@@ -33,8 +33,10 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
     final response = await _interface.get(id);
     if (response.isRight()) {
       final List<Author> tempList = List<Author>.from(state.authors);
+      final int authorIndex =
+          tempList.indexWhere((element) => element.id == id);
       tempList.removeWhere((element) => element.id == id);
-      tempList.add(response.getRightOrThrow());
+      tempList.insert(authorIndex, response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,
         authors: tempList,
