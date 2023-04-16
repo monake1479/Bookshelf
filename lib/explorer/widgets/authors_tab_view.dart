@@ -90,18 +90,14 @@ class AuthorsTabView extends StatelessWidget {
                           ref
                               .read(authorFormNotifierProvider.notifier)
                               .setInitialAuthor(getAuthorsState.authors[index]);
-                          await _onAuthorEditTap(
-                            ref,
+                          await EditAuthorDialog.show(
                             context,
-                            index,
+                            getAuthorsState.authors[index],
                           );
                         },
                         onDelete: () async {
                           await _onAuthorDeleteTap(
-                            ref,
-                            context,
-                            index,
-                          );
+                              ref, context, getAuthorsState.authors[index].id);
                         },
                       ),
                     ],
