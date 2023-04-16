@@ -105,7 +105,7 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
       final response = await _interface.delete(id);
 
       if (response.isRight()) {
-        await _getAuthorsNotifier.getAll();
+        await getAll();
 
         if (_getAuthorsNotifier.state.exception != null) {
           state = state.copyWith(
