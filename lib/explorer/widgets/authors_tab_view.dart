@@ -1,15 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ztp_projekt/authors/controllers/form/authors_form_state.dart';
-import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_notifier.dart';
-import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/providers.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/edit_author_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/record_actions.dart';
 import 'package:ztp_projekt/explorer/widgets/record_header_cell.dart';
 import 'package:ztp_projekt/explorer/widgets/records_row.dart';
@@ -68,9 +64,7 @@ class AuthorsTabView extends StatelessWidget {
         Consumer(
           builder: (context, ref, child) {
             final getAuthorsState = ref.watch(getAuthorsNotifierProvider);
-            final manageAuthorsNotifier =
-                ref.watch(manageAuthorsNotifierProvider.notifier);
-            final manageAuthorsState = ref.watch(manageAuthorsNotifierProvider);
+
             if (getAuthorsState.authors.isEmpty) {
               return const SliverPadding(
                 padding: EdgeInsets.only(top: 20),
