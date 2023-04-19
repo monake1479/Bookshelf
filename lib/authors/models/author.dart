@@ -13,17 +13,11 @@ class Author with _$Author {
 }
 
 extension AuthorEx on Author {
+  String get fullName => '$firstName $lastName';
+
   Map<String, dynamic> get toMap => {
         'id': id,
         'firstName': firstName,
         'lastName': lastName,
       };
-
-  Author toAuthor(Map<String, Object?> authorMap) {
-    return Author(
-      id: authorMap['id'] as int,
-      firstName: authorMap['firstName'] as String,
-      lastName: authorMap['lastName'] as String,
-    );
-  }
 }
