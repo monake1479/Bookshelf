@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/interfaces/author_interface.dart';
@@ -13,7 +15,9 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
 
   Future<void> getAll() async {
     state = state.copyWith(isLoading: true);
+    log('before state.authors:${state.authors}');
     final response = await _interface.getAll();
+    log('after response:${response}');
     if (response.isRight()) {
       state = state.copyWith(
         isLoading: false,
@@ -28,14 +32,18 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
     }
   }
 
-  Future<void> get(int id) async {
+  Future<Author?> get(int id) async {
+    log('id in get: $id');
+    late Author? result;
     state = state.copyWith(isLoading: true);
     final response = await _interface.get(id);
     if (response.isRight()) {
+      result = response.getRightOrThrow();
       final List<Author> tempList = List<Author>.from(state.authors);
       final int authorIndex =
           tempList.indexWhere((element) => element.id == id);
       tempList.removeWhere((element) => element.id == id);
+      log('response.getRightOrThrow():${response.getRightOrThrow()}');
       tempList.insert(authorIndex, response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,
@@ -43,11 +51,13 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
         exception: null,
       );
     } else {
+      result = null;
       state = state.copyWith(
         isLoading: false,
         exception: response.getLeftOrThrow(),
       );
     }
+    return result;
   }
 
   void delete(int id) {
