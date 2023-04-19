@@ -1,11 +1,15 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ztp_projekt/authors/controllers/form/authors_form_notifier.dart';
 import 'package:ztp_projekt/authors/controllers/form/authors_form_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/providers.dart';
 import 'package:ztp_projekt/authors/models/author.dart';
+import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
 
 class EditAuthorDialog extends StatefulWidget {
@@ -119,29 +123,7 @@ class _EditAuthorDialogState extends State<EditAuthorDialog> {
                           shape: const RoundedRectangleBorder(),
                         ),
                         onPressed: () async {
-                          if (ref
-                                  .read(authorFormNotifierProvider)
-                                  .isFirstNameValid &&
-                              ref
-                                  .read(authorFormNotifierProvider)
-                                  .isLastNameValid) {
-                            await authorsFormNotifier.updateAuthor();
-                            if (ref
-                                .read(manageAuthorsNotifierProvider)
-                                .isException) {
-                              await BookshelfExceptionDialog.show(
-                                context,
-                                ref
-                                    .read(manageAuthorsNotifierProvider)
-                                    .getException!,
-                                () {
-                                  Navigator.of(context).pop();
-                                },
-                              );
-                            }
-
-                            Navigator.of(context).pop();
-                          }
+                          await _editOnPressed(ref, context);
                         },
                         icon: const Icon(
                           Icons.edit,
@@ -157,6 +139,27 @@ class _EditAuthorDialogState extends State<EditAuthorDialog> {
         );
       },
     );
+  }
+
+  Future<void> _editOnPressed(WidgetRef ref, BuildContext context) async {
+    final authorsFormNotifier = ref.read(authorFormNotifierProvider.notifier);
+
+    if (ref.read(authorFormNotifierProvider).isFirstNameValid &&
+        ref.read(authorFormNotifierProvider).isLastNameValid) {
+      await authorsFormNotifier.updateAuthor();
+      if (ref.read(manageAuthorsNotifierProvider).isException) {
+        await BookshelfExceptionDialog.show(
+          context,
+          ref.read(manageAuthorsNotifierProvider).getException!,
+          () {
+            Navigator.of(context).pop();
+          },
+        );
+      } else {
+        await ref.read(manageBooksNotifierProvider.notifier).getAll();
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   @override
