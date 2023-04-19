@@ -1,9 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/providers.dart';
+import 'package:ztp_projekt/authors/models/author.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/edit_author_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/record_actions.dart';
@@ -65,6 +69,9 @@ class AuthorsTabView extends StatelessWidget {
           builder: (context, ref, child) {
             final getAuthorsState = ref.watch(getAuthorsNotifierProvider);
 
+            log('getAuthorsState.authors.length:${getAuthorsState.authors.length}');
+            log('in build getAuthorsState.authors: ${getAuthorsState.authors}');
+
             if (getAuthorsState.authors.isEmpty) {
               return const SliverPadding(
                 padding: EdgeInsets.only(top: 20),
@@ -78,6 +85,7 @@ class AuthorsTabView extends StatelessWidget {
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => RecordsRow(
+                    key: UniqueKey(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -87,17 +95,18 @@ class AuthorsTabView extends StatelessWidget {
                       Text(getAuthorsState.authors[index].lastName),
                       RecordActions(
                         onEdit: () async {
-                          ref
-                              .read(authorFormNotifierProvider.notifier)
-                              .setInitialAuthor(getAuthorsState.authors[index]);
-                          await EditAuthorDialog.show(
+                          await _onAuthorEditTap(
+                            ref,
                             context,
                             getAuthorsState.authors[index],
                           );
                         },
                         onDelete: () async {
                           await _onAuthorDeleteTap(
-                              ref, context, getAuthorsState.authors[index].id);
+                            ref,
+                            context,
+                            getAuthorsState.authors[index].id,
+                          );
                         },
                       ),
                     ],
@@ -109,6 +118,18 @@ class AuthorsTabView extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+
+  Future<void> _onAuthorEditTap(
+    WidgetRef ref,
+    BuildContext context,
+    Author author,
+  ) async {
+    ref.read(authorFormNotifierProvider.notifier).setInitialAuthor(author);
+    await EditAuthorDialog.show(
+      context,
+      author,
     );
   }
 
