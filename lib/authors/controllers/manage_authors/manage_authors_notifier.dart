@@ -6,6 +6,7 @@ import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffie
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/interfaces/author_interface.dart';
+import 'package:ztp_projekt/authors/models/author.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_notifier.dart';
 import 'package:ztp_projekt/common/utils/either_extension.dart';
 
@@ -41,6 +42,26 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
         failureOrSuccessOption: some(right(unit)),
       );
     }
+  }
+
+  Future<Author?> get(int id) async {
+    late Author? result;
+    state = state.copyWith(isLoading: true);
+    result = await _getAuthorsNotifier.get(id);
+    if (_getAuthorsNotifier.state.isException) {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(
+          left(_getAuthorsNotifier.state.exception!),
+        ),
+      );
+    } else {
+      state = state.copyWith(
+        isLoading: false,
+        failureOrSuccessOption: some(right(unit)),
+      );
+    }
+    return result;
   }
 
   Future<void> insert(Map<String, Object?> values) async {
@@ -101,9 +122,9 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
   Future<void> delete(int id) async {
     state = state.copyWith(isLoading: true);
     final isRelation = await _manageBooksNotifier.checkRelation(id);
+    log('isRelation:$isRelation');
     if (isRelation.isRight()) {
       final response = await _interface.delete(id);
-
       if (response.isRight()) {
         await getAll();
 
