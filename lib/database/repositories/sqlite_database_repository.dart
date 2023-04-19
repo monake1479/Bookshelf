@@ -129,8 +129,10 @@ class SqliteDatabaseRepository implements DatabaseInterface {
     if (_db != null && _db!.isOpen) {
       final response = await _db!.query(
         tableName,
-        where: id.toString(),
+        where: 'id = ?',
+        whereArgs: [id.toString()],
       );
+
       result = right(response);
     } else {
       result = left(const BookshelfException.databaseIsClosed());
