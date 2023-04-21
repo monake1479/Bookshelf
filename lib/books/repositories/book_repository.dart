@@ -37,7 +37,11 @@ class BookRepository implements BookInterface {
     int id,
   ) async {
     late Either<BookshelfException, Book> result;
-    final response = await _interface.get(TableName.books.name, id);
+    final response = await _interface.get(
+      TableName.books.name,
+      id,
+      rawQueryNeeded: true,
+    );
     if (response.isRight()) {
       final List<Book> books = [];
       final escapedResponse = response.getRightOrThrow();
