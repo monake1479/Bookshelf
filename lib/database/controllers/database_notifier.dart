@@ -1,15 +1,13 @@
-import 'dart:developer';
+// ignore_for_file: avoid_slow_async_io
+
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffier.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_notifier.dart';
-import 'package:ztp_projekt/books/controllers/get_books/get_books_notifier.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_notifier.dart';
-import 'package:ztp_projekt/common/utils/database_variables.dart';
 import 'package:ztp_projekt/common/utils/either_extension.dart';
 import 'package:ztp_projekt/database/controllers/database_state.dart';
 import 'package:ztp_projekt/database/interfaces/database_interface.dart';

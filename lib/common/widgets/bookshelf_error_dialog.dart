@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
 
 class BookshelfErrorDialog extends StatelessWidget {
   const BookshelfErrorDialog({

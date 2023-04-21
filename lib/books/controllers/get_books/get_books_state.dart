@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ztp_projekt/books/models/book.dart';
 import 'package:ztp_projekt/common/models/bookshelf_exception.dart';

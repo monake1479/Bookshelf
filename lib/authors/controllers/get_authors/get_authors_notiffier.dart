@@ -15,9 +15,7 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
 
   Future<void> getAll() async {
     state = state.copyWith(isLoading: true);
-    log('before state.authors:${state.authors}');
     final response = await _interface.getAll();
-    log('after response:${response}');
     if (response.isRight()) {
       state = state.copyWith(
         isLoading: false,
@@ -33,7 +31,6 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
   }
 
   Future<Author?> get(int id) async {
-    log('id in get: $id');
     late Author? result;
     state = state.copyWith(isLoading: true);
     final response = await _interface.get(id);
@@ -43,7 +40,6 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
       final int authorIndex =
           tempList.indexWhere((element) => element.id == id);
       tempList.removeWhere((element) => element.id == id);
-      log('response.getRightOrThrow():${response.getRightOrThrow()}');
       tempList.insert(authorIndex, response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,

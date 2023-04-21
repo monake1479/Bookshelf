@@ -6,6 +6,9 @@ extension ColorAtElevation on Color {
     double elevation,
   ) {
     return ElevationOverlay.applySurfaceTint(
-        this, Theme.of(context).colorScheme.surfaceTint, elevation);
+      this,
+      Theme.of(context).colorScheme.surfaceTint,
+      elevation,
+    );
   }
 }
