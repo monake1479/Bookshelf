@@ -2,8 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ztp_projekt/books/controllers/get_books/get_books_state.dart';
-import 'package:ztp_projekt/books/controllers/form/book_form_notifier.dart';
+import 'package:intl/intl.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_state.dart';
 import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/books/models/book.dart';
@@ -126,7 +125,8 @@ class BooksTabView extends StatelessWidget {
                       Text(getBooksState.books[index].title),
                       Text(getBooksState.books[index].authorName),
                       Text(getBooksState.books[index].publisher),
-                      Text('${getBooksState.books[index].publicationDate}'),
+                      Text(DateFormat('dd-MM-yyyy')
+                          .format(getBooksState.books[index].publicationDate)),
                       Text(getBooksState.books[index].isbnNumber),
                       Text('${getBooksState.books[index].price}'),
                       RecordActions(
