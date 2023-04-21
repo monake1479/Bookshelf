@@ -13,8 +13,9 @@ abstract class DatabaseInterface {
   });
   Future<Either<BookshelfException, List<Map<String, Object?>>>> get(
     String tableName,
-    int id,
-  );
+    int id, {
+    bool rawQueryNeeded = false,
+  });
   Future<Either<BookshelfException, int>> insert(
     String tableName,
     Map<String, Object?> values,
