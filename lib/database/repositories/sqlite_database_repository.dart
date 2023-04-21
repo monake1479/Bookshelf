@@ -1,4 +1,5 @@
-import 'dart:developer';
+// ignore_for_file: avoid_slow_async_io
+
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -123,15 +124,22 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   @override
   Future<Either<BookshelfException, List<Map<String, Object?>>>> get(
     String tableName,
-    int id,
-  ) async {
+    int id, {
+    bool rawQueryNeeded = false,
+  }) async {
     late Either<BookshelfException, List<Map<String, Object?>>> result;
+    late List<Map<String, Object?>> response;
     if (_db != null && _db!.isOpen) {
-      final response = await _db!.query(
-        tableName,
-        where: 'id = ?',
-        whereArgs: [id.toString()],
-      );
+      if (rawQueryNeeded) {
+        final getBookWithId = getBook.replaceAll('{id}', id.toString());
+        response = await _db!.rawQuery(getBookWithId);
+      } else {
+        response = await _db!.query(
+          tableName,
+          where: 'id = ?',
+          whereArgs: [id.toString()],
+        );
+      }
 
       result = right(response);
     } else {
