@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_notifier.dart';
+import 'package:ztp_projekt/authors/models/author.dart';
 import 'package:ztp_projekt/books/controllers/form/book_form_state.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_notifier.dart';
 import 'package:ztp_projekt/books/models/book.dart';
@@ -49,13 +50,8 @@ class BookFormNotifier extends StateNotifier<BookFormState> {
     state = BookFormState.initial();
   }
 
-  Future<void> updateAuthorId(int authorId) async {
-    final author = await _manageAuthorsNotifier.get(authorId);
-    if (author != null) {
-      state = state.copyWith(author: author);
-    } else {
-      state = state.copyWith(author: null);
-    }
+  void updateAuthor(Author author) {
+    state = state.copyWith(author: author);
   }
 
   void updateTitle(String title) {
@@ -74,7 +70,7 @@ class BookFormNotifier extends StateNotifier<BookFormState> {
     state = state.copyWith(isbnNumber: isbnNumber);
   }
 
-  void updatePrice(double price) {
+  void updatePrice(double? price) {
     state = state.copyWith(price: price);
   }
 }
