@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
@@ -67,9 +65,6 @@ class AuthorsTabView extends StatelessWidget {
         Consumer(
           builder: (context, ref, child) {
             final getAuthorsState = ref.watch(getAuthorsNotifierProvider);
-
-            log('getAuthorsState.authors.length:${getAuthorsState.authors.length}');
-            log('in build getAuthorsState.authors: ${getAuthorsState.authors}');
 
             if (getAuthorsState.authors.isEmpty) {
               return const SliverPadding(
