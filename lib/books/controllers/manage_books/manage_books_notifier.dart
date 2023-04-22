@@ -43,7 +43,7 @@ class ManageBooksNotifier extends StateNotifier<ManageBooksState> {
     state = state.copyWith(isLoading: true);
     final response = await _interface.insert(values);
     if (response.isRight()) {
-      await _getBooksNotifier.get(response.getRightOrThrow());
+      await _getBooksNotifier.getAll();
       if (_getBooksNotifier.state.exception != null) {
         state = state.copyWith(
           isLoading: false,
