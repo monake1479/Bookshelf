@@ -101,8 +101,6 @@ class BooksTabView extends StatelessWidget {
         Consumer(
           builder: (context, ref, child) {
             final getBooksState = ref.watch(getBooksNotifierProvider);
-            final bookFormNotifier =
-                ref.watch(bookFormNotifierProvider.notifier);
             if (getBooksState.books.isEmpty) {
               return const SliverPadding(
                 padding: EdgeInsets.only(top: 20),
@@ -125,8 +123,10 @@ class BooksTabView extends StatelessWidget {
                       Text(getBooksState.books[index].title),
                       Text(getBooksState.books[index].authorName),
                       Text(getBooksState.books[index].publisher),
-                      Text(DateFormat('dd-MM-yyyy')
-                          .format(getBooksState.books[index].publicationDate)),
+                      Text(
+                        DateFormat('dd-MM-yyyy')
+                            .format(getBooksState.books[index].publicationDate),
+                      ),
                       Text(getBooksState.books[index].isbnNumber),
                       Text('${getBooksState.books[index].price}'),
                       RecordActions(
