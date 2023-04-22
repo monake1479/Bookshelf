@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/console/command_line.dart';
 import 'package:ztp_projekt/database/controllers/providers.dart';
 import 'package:ztp_projekt/explorer/widgets/authors_tab_view.dart';
 import 'package:ztp_projekt/explorer/widgets/books_tab_view.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/add_book_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/select_or_create_database_dialog.dart';
 
 class RecordsPage extends ConsumerStatefulWidget {
@@ -45,6 +48,36 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
           ),
         ),
         actions: [
+          Builder(
+            builder: (context) {
+              if (databaseState.isDatabaseOpened) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      if (_tabController.index == 0) {
+                        await AddBookDialog.show(
+                          context,
+                        );
+                      } else {
+                        _addAuthor();
+                      }
+                    },
+                    label: Text(
+                      'Add record',
+                      style: TextStyle(color: colorScheme.tertiary),
+                    ),
+                    icon: Icon(
+                      Icons.add_circle,
+                      color: colorScheme.tertiary,
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox();
+              }
+            },
+          ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             child: TextButton.icon(
@@ -129,6 +162,10 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
         ],
       ),
     );
+  }
+
+  void _addAuthor() {
+    log('Add author');
   }
 
   void _showDbChangeDialog(BuildContext context) {
