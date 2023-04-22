@@ -13,9 +13,15 @@ class AuthorsFormNotifier extends StateNotifier<AuthorsFormState> {
     state = AuthorsFormState.initial();
   }
 
-  Future<void> updateAuthor() async {
+  Future<void> update() async {
     state = state.copyWith(isLoading: true);
     await _manageAuthorsNotifier.update(state.toAuthor.toMap, state.id!);
+    state = AuthorsFormState.initial();
+  }
+
+  Future<void> insert() async {
+    state = state.copyWith(isLoading: true);
+    await _manageAuthorsNotifier.insert(state.toInsertMap);
     state = AuthorsFormState.initial();
   }
 
