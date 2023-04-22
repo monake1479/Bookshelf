@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffier.dart';
+import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notifier.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/interfaces/author_interface.dart';
@@ -68,7 +66,7 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
     state = state.copyWith(isLoading: true);
     final response = await _interface.insert(values);
     if (response.isRight()) {
-      await _getAuthorsNotifier.get(response.getRightOrThrow());
+      await _getAuthorsNotifier.getAll();
       if (_getAuthorsNotifier.state.exception != null) {
         state = state.copyWith(
           isLoading: false,
@@ -122,7 +120,6 @@ class ManageAuthorsNotifier extends StateNotifier<ManageAuthorsState> {
   Future<void> delete(int id) async {
     state = state.copyWith(isLoading: true);
     final isRelation = await _manageBooksNotifier.checkRelation(id);
-    log('isRelation:$isRelation');
     if (isRelation.isRight()) {
       final response = await _interface.delete(id);
       if (response.isRight()) {
