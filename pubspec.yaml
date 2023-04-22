@@ -45,7 +45,6 @@ dependencies:
   path_provider: ^2.0.14
   url_launcher: ^6.1.10
   dropdown_button2: ^2.1.0
-  table_calendar: ^3.0.9
   intl: ^0.18.1
 
 dev_dependencies:
