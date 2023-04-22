@@ -36,7 +36,6 @@ extension BookFormStateEx on BookFormState {
   bool get isIsbnNumberValid => isbnNumber != null && isbnNumber!.isNotEmpty;
   bool get isPriceValid => price != null;
   bool get isFormValid =>
-      id != null &&
       isTitleValid &&
       isPublisherValid &&
       isPublicationDateValid &&
@@ -52,4 +51,14 @@ extension BookFormStateEx on BookFormState {
         isbnNumber: isbnNumber!,
         price: price!,
       );
+
+  Map<String, dynamic> get toInsertMap => {
+        'id': null,
+        'authorId': author!.id,
+        'title': title,
+        'publisher': publisher,
+        'publicationDate': publicationDate!.toIso8601String(),
+        'isbnNumber': isbnNumber,
+        'price': price,
+      };
 }
