@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/form/authors_form_notifier.dart';
 import 'package:ztp_projekt/authors/controllers/form/authors_form_state.dart';
-import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notiffier.dart';
+import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_notifier.dart';
 import 'package:ztp_projekt/authors/controllers/get_authors/get_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_notifier.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
