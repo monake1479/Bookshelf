@@ -1,13 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:ztp_projekt/authors/controllers/providers.dart';
 import 'package:ztp_projekt/authors/models/author.dart';
 import 'package:ztp_projekt/books/controllers/form/book_form_state.dart';
@@ -166,33 +163,32 @@ class _EditBookDialogState extends State<EditBookDialog> {
                         ),
                       ),
                       Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: TextFormField(
-                            readOnly: true,
-                            controller: _dateController,
-                            decoration: InputDecoration(
-                              labelText: 'Publication date',
-                              errorText: _dateController.text.isNotEmpty
-                                  ? null
-                                  : 'Field cannot be empty',
-                            ),
-                            onTap: () async {
-                              final pickedDate = await _showTableCalendar(
-                                context,
-                                bookFormState.publicationDate!,
-                              );
-                              log('result:$pickedDate');
-                              if (pickedDate != null) {
-                                bookFormNotifier
-                                    .updatePublicationDate(pickedDate);
-                                setState(() {
-                                  _dateController.text =
-                                      DateFormat('dd-MM-yyyy')
-                                          .format(pickedDate);
-                                });
-                              }
-                            },
-                          )),
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: TextFormField(
+                          readOnly: true,
+                          controller: _dateController,
+                          decoration: InputDecoration(
+                            labelText: 'Publication date',
+                            errorText: _dateController.text.isNotEmpty
+                                ? null
+                                : 'Field cannot be empty',
+                          ),
+                          onTap: () async {
+                            final pickedDate = await _showTableCalendar(
+                              context,
+                              bookFormState.publicationDate!,
+                            );
+                            if (pickedDate != null) {
+                              bookFormNotifier
+                                  .updatePublicationDate(pickedDate);
+                              setState(() {
+                                _dateController.text =
+                                    DateFormat('dd-MM-yyyy').format(pickedDate);
+                              });
+                            }
+                          },
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: TextFormField(
@@ -265,46 +261,17 @@ class _EditBookDialogState extends State<EditBookDialog> {
 
   Future<DateTime?> _showTableCalendar(
     BuildContext context,
-    DateTime focusedDay,
+    DateTime initialDay,
   ) async {
     final pickedDate = await showDialog<DateTime?>(
       context: context,
-      builder: (context) => AlertDialog(
-        content: SizedBox(
-          height: 400,
-          width: 400,
-          child: TableCalendar(
-            locale: 'pl_PL',
-            focusedDay: focusedDay,
-            firstDay: DateTime(1950),
-            lastDay: DateTime.now(),
-            currentDay: DateTime.now(),
-            calendarStyle: const CalendarStyle(
-              selectedDecoration: BoxDecoration(
-                color: Colors.amber,
-                shape: BoxShape.circle,
-              ),
-              todayDecoration: BoxDecoration(
-                color: Colors.white,
-              ),
-              todayTextStyle: TextStyle(
-                color: Colors.green,
-              ),
-            ),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-            ),
-            onDaySelected: (selectedDay, focusedDay) {
-              Navigator.of(context).pop(selectedDay);
-            },
-            
-            onFormatChanged: (_) {},
-          ),
-        ),
+      builder: (context) => DatePickerDialog(
+        initialDate: initialDay,
+        firstDate: DateTime(1950),
+        lastDate: DateTime.now(),
       ),
     );
-    // TODO: Replace TableCalendar with DatePickerDialog
-    DatePickerDialog(initialDate: initialDate, firstDate: firstDate, lastDate: lastDate)
+
     return pickedDate;
   }
 
@@ -312,7 +279,7 @@ class _EditBookDialogState extends State<EditBookDialog> {
     final bookFormNotifier = ref.read(bookFormNotifierProvider.notifier);
 
     if (ref.read(bookFormNotifierProvider).isFormValid) {
-      await bookFormNotifier.updateBook();
+      await bookFormNotifier.update();
       if (ref.read(manageBooksNotifierProvider).isException) {
         await BookshelfExceptionDialog.show(
           context,
