@@ -1,11 +1,10 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/console/command_line.dart';
 import 'package:ztp_projekt/database/controllers/providers.dart';
 import 'package:ztp_projekt/explorer/widgets/authors_tab_view.dart';
 import 'package:ztp_projekt/explorer/widgets/books_tab_view.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/add_author_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/add_book_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/select_or_create_database_dialog.dart';
 
@@ -56,11 +55,9 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
                   child: TextButton.icon(
                     onPressed: () async {
                       if (_tabController.index == 0) {
-                        await AddBookDialog.show(
-                          context,
-                        );
+                        await AddBookDialog.show(context);
                       } else {
-                        _addAuthor();
+                        await AddAuthorDialog.show(context);
                       }
                     },
                     label: Text(
@@ -162,10 +159,6 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
         ],
       ),
     );
-  }
-
-  void _addAuthor() {
-    log('Add author');
   }
 
   void _showDbChangeDialog(BuildContext context) {
