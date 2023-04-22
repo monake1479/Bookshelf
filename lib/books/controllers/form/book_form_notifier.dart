@@ -44,9 +44,15 @@ class BookFormNotifier extends StateNotifier<BookFormState> {
     }
   }
 
-  Future<void> updateBook() async {
+  Future<void> update() async {
     state = state.copyWith(isLoading: true);
     await _manageBooksNotifier.update(state.toBook.toMap, state.id!);
+    state = BookFormState.initial();
+  }
+
+  Future<void> insert() async {
+    state = state.copyWith(isLoading: true);
+    await _manageBooksNotifier.insert(state.toInsertMap);
     state = BookFormState.initial();
   }
 
