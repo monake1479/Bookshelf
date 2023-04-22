@@ -143,7 +143,7 @@ class _EditAuthorDialogState extends State<EditAuthorDialog> {
 
     if (ref.read(authorFormNotifierProvider).isFirstNameValid &&
         ref.read(authorFormNotifierProvider).isLastNameValid) {
-      await authorsFormNotifier.updateAuthor();
+      await authorsFormNotifier.update();
       if (ref.read(manageAuthorsNotifierProvider).isException) {
         await BookshelfExceptionDialog.show(
           context,
