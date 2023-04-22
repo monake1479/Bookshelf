@@ -310,4 +310,11 @@ class _AddBookDialogState extends State<AddBookDialog> {
       }
     }
   }
+
+  @override
+  void dispose() {
+    _dateTextController.dispose();
+    _priceTextController.dispose();
+    super.dispose();
+  }
 }
