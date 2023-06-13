@@ -28,25 +28,36 @@ class GetAuthorsNotifier extends StateNotifier<GetAuthorsState> {
     }
   }
 
-  Future<void> get(int id) async {
+  Future<Author?> get(int id) async {
+    late Author? result;
     state = state.copyWith(isLoading: true);
     final response = await _interface.get(id);
     if (response.isRight()) {
+      result = response.getRightOrThrow();
       final List<Author> tempList = List<Author>.from(state.authors);
-      final index = tempList.indexWhere((element) => element.id == id);
+      final int authorIndex =
+          tempList.indexWhere((element) => element.id == id);
       tempList.removeWhere((element) => element.id == id);
-      tempList.insert(index, response.getRightOrThrow());
-
+      tempList.insert(authorIndex, response.getRightOrThrow());
       state = state.copyWith(
         isLoading: false,
         authors: tempList,
         exception: null,
       );
     } else {
+      result = null;
       state = state.copyWith(
         isLoading: false,
         exception: response.getLeftOrThrow(),
       );
     }
+    return result;
+  }
+
+  void delete(int id) {
+    state = state.copyWith(isLoading: true);
+    final tempList = List<Author>.from(state.authors);
+    tempList.removeWhere((element) => element.id == id);
+    state = state.copyWith(isLoading: false, authors: tempList);
   }
 }

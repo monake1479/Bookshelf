@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_slow_async_io
+
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -6,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
+import 'package:ztp_projekt/common/models/table_name.dart';
 import 'package:ztp_projekt/common/utils/database_variables.dart';
 import 'package:ztp_projekt/database/interfaces/database_interface.dart';
 
@@ -22,20 +25,35 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   Future<void> _setDatabasesPath() async {
     final Directory documentsDirectory =
         await getApplicationDocumentsDirectory();
+
     final Directory databaseDirectory =
-        Directory('${documentsDirectory.path}/bookshelf/');
+        Directory('${documentsDirectory.path}\\bookshelf\\');
     if (!await databaseDirectory.exists()) {
       await databaseDirectory.create(recursive: true);
     }
+
     await databaseFactoryFfi
-        .setDatabasesPath('${documentsDirectory.path}/bookshelf');
+        .setDatabasesPath('${documentsDirectory.path}\\bookshelf');
+  }
+
+  @override
+  bool isDbOpened() {
+    if (_db != null && _db!.isOpen) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
   Future<Either<BookshelfException, Unit>> createDb(String databaseName) async {
     late Either<BookshelfException, Unit> result;
 
-    final databasePath = join(await getDatabasesPath(), databaseName);
+    final databasePath = join(
+      await databaseFactoryFfi.getDatabasesPath(),
+      '$databaseName.db',
+    );
+
     if (!await databaseFactoryFfi.databaseExists(databasePath)) {
       _db = await databaseFactoryFfi.openDatabase(
         databasePath,
@@ -53,24 +71,28 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   @override
   Future<Either<BookshelfException, Unit>> openDb(String databaseName) async {
     late Either<BookshelfException, Unit> result;
-    if (_db != null && !_db!.isOpen) {
-      final databasePath = join(await getDatabasesPath(), databaseName);
-      _db = await databaseFactoryFfi.openDatabase(
-        databasePath,
-      );
-      if (_db == null) {
-        result = left(
-          const BookshelfException.custom(
-            message:
-                'Something went wrong while opening database, please check database name and path.',
-          ),
-        );
-      } else {
-        result = right(unit);
-      }
-    } else {
-      result = left(const BookshelfException.databaseAlreadyOpened());
+    if (_db != null && _db!.isOpen) {
+      await closeDb();
     }
+
+    final databasePath = join(
+      await databaseFactoryFfi.getDatabasesPath(),
+      databaseName,
+    );
+    _db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+    );
+    if (_db == null) {
+      result = left(
+        const BookshelfException.custom(
+          message:
+              'Something went wrong while opening database, please check database name and path.',
+        ),
+      );
+    } else {
+      result = right(unit);
+    }
+
     return result;
   }
 
@@ -80,12 +102,18 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   }
 
   @override
-  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll(
-    String tableName,
-  ) async {
+  Future<Either<BookshelfException, List<Map<String, Object?>>>> getAll({
+    String? tableName,
+    String? rawQuery,
+  }) async {
     late Either<BookshelfException, List<Map<String, Object?>>> result;
+    late List<Map<String, Object?>> response;
     if (_db != null && _db!.isOpen) {
-      final response = await _db!.query(tableName);
+      if (tableName != null) {
+        response = await _db!.query(tableName);
+      } else {
+        response = await _db!.rawQuery(getAllBooks);
+      }
       result = right(response);
     } else {
       result = left(const BookshelfException.databaseIsClosed());
@@ -96,11 +124,23 @@ class SqliteDatabaseRepository implements DatabaseInterface {
   @override
   Future<Either<BookshelfException, List<Map<String, Object?>>>> get(
     String tableName,
-    int id,
-  ) async {
+    int id, {
+    bool rawQueryNeeded = false,
+  }) async {
     late Either<BookshelfException, List<Map<String, Object?>>> result;
+    late List<Map<String, Object?>> response;
     if (_db != null && _db!.isOpen) {
-      final response = await _db!.query(tableName, whereArgs: [id]);
+      if (rawQueryNeeded) {
+        final getBookWithId = getBook.replaceAll('{id}', id.toString());
+        response = await _db!.rawQuery(getBookWithId);
+      } else {
+        response = await _db!.query(
+          tableName,
+          where: 'id = ?',
+          whereArgs: [id.toString()],
+        );
+      }
+
       result = right(response);
     } else {
       result = left(const BookshelfException.databaseIsClosed());
@@ -175,6 +215,41 @@ class SqliteDatabaseRepository implements DatabaseInterface {
         result = left(
           const BookshelfException.custom(
             message: 'The record does not exist under the given id.',
+          ),
+        );
+      }
+    } else {
+      result = left(const BookshelfException.databaseIsClosed());
+    }
+    return result;
+  }
+
+  @override
+  String getDatabasePath() {
+    if (_db != null && _db!.isOpen) {
+      return _db!.database.path;
+    } else {
+      return '';
+    }
+  }
+
+  @override
+  Future<Either<BookshelfException, Unit>> findAuthorRelation(
+    int authorId,
+  ) async {
+    late Either<BookshelfException, Unit> result;
+    if (_db != null && _db!.isOpen) {
+      final response = await _db!.query(
+        TableName.books.name,
+        where: 'authorId = ?',
+        whereArgs: [authorId],
+      );
+      if (response.isEmpty) {
+        result = right(unit);
+      } else {
+        result = left(
+          const BookshelfException.custom(
+            message: 'Author has relation with book. Please remove book first.',
           ),
         );
       }

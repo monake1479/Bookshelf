@@ -35,9 +35,10 @@ class GetBooksNotifier extends StateNotifier<GetBooksState> {
     final response = await _interface.get(id);
     if (response.isRight()) {
       final List<Book> tempList = List<Book>.from(state.books);
-      final index = tempList.indexWhere((element) => element.id == id);
+      final int bookIndex = tempList.indexWhere((element) => element.id == id);
       tempList.removeWhere((element) => element.id == id);
-      tempList.insert(index, response.getRightOrThrow());
+      tempList.insert(bookIndex, response.getRightOrThrow());
+      tempList.add(response.getRightOrThrow());
 
       state = state.copyWith(
         isLoading: false,

@@ -1,4 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
+import 'package:ztp_projekt/authors/controllers/providers.dart';
+import 'package:ztp_projekt/authors/models/author.dart';
+import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/edit_author_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/record_actions.dart';
 import 'package:ztp_projekt/explorer/widgets/record_header_cell.dart';
 import 'package:ztp_projekt/explorer/widgets/records_row.dart';
@@ -54,23 +62,87 @@ class AuthorsTabView extends StatelessWidget {
             ],
           ),
         ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) => RecordsRow(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              children: [
-                const Text('Name'),
-                const Text('Last Name'),
-                RecordActions(),
-              ],
-            ),
-            childCount: 30,
-          ),
+        Consumer(
+          builder: (context, ref, child) {
+            final getAuthorsState = ref.watch(getAuthorsNotifierProvider);
+
+            if (getAuthorsState.authors.isEmpty) {
+              return const SliverPadding(
+                padding: EdgeInsets.only(top: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Center(
+                    child: Text('Authors table is empty'),
+                  ),
+                ),
+              );
+            } else {
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => RecordsRow(
+                    key: UniqueKey(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    children: [
+                      Text(getAuthorsState.authors[index].firstName),
+                      Text(getAuthorsState.authors[index].lastName),
+                      RecordActions(
+                        onEdit: () async {
+                          await _onAuthorEditTap(
+                            ref,
+                            context,
+                            getAuthorsState.authors[index],
+                          );
+                        },
+                        onDelete: () async {
+                          await _onAuthorDeleteTap(
+                            ref,
+                            context,
+                            getAuthorsState.authors[index].id,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  childCount: getAuthorsState.authors.length,
+                ),
+              );
+            }
+          },
         ),
       ],
     );
+  }
+
+  Future<void> _onAuthorEditTap(
+    WidgetRef ref,
+    BuildContext context,
+    Author author,
+  ) async {
+    ref.read(authorFormNotifierProvider.notifier).setInitialAuthor(author);
+    await EditAuthorDialog.show(
+      context,
+      author,
+    );
+  }
+
+  Future<void> _onAuthorDeleteTap(
+    WidgetRef ref,
+    BuildContext context,
+    int authorId,
+  ) async {
+    await ref.read(manageAuthorsNotifierProvider.notifier).delete(authorId);
+
+    if (ref.read(manageAuthorsNotifierProvider).isException) {
+      await BookshelfExceptionDialog.show(
+        context,
+        ref.read(manageAuthorsNotifierProvider).getException!,
+        () {
+          ref.read(manageAuthorsNotifierProvider.notifier).getAll();
+          Navigator.of(context).pop();
+        },
+      );
+    }
   }
 }

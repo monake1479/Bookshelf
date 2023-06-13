@@ -19,7 +19,8 @@ class BookshelfException with _$BookshelfException {
 extension BookshelfExceptionEx on BookshelfException {
   String get description {
     return maybeWhen<String>(
-      databaseExist: () => 'Database under this path already exist!',
+      databaseExist: () =>
+          'Database under this name already exist! Select different name!',
       databaseAlreadyOpened: () =>
           'Database is already opened! Please, close existing before you open another one.',
       databaseIsClosed: () => 'Database is closed! Please, open it first.',

@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/console/command_line.dart';
+import 'package:ztp_projekt/database/controllers/providers.dart';
 import 'package:ztp_projekt/explorer/widgets/authors_tab_view.dart';
 import 'package:ztp_projekt/explorer/widgets/books_tab_view.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/add_author_dialog.dart';
+import 'package:ztp_projekt/explorer/widgets/dialogs/add_book_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/select_or_create_database_dialog.dart';
 
-class RecordsPage extends StatefulWidget {
+class RecordsPage extends ConsumerStatefulWidget {
   const RecordsPage({super.key});
 
   @override
-  State<RecordsPage> createState() => _RecordsPageState();
+  ConsumerState<RecordsPage> createState() => _RecordsPageState();
 }
 
-class _RecordsPageState extends State<RecordsPage>
+class _RecordsPageState extends ConsumerState<RecordsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  bool databaseNotSelected = true;
-  String? selectedDatabase = 'Bookshelf';
 
   @override
   void initState() {
     _tabController = TabController(vsync: this, length: 2);
+    if (!ref.read(databaseNotifierProvider.notifier).isDbOpened()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(databaseNotifierProvider.notifier).listAllFiles();
+        _showDbChangeDialog(context);
+      });
+    }
     super.initState();
   }
 
@@ -28,11 +35,8 @@ class _RecordsPageState extends State<RecordsPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    if (databaseNotSelected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showDbChangeDialog(context, selectedDatabase);
-      });
-    }
+    final databaseState = ref.watch(databaseNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -43,6 +47,52 @@ class _RecordsPageState extends State<RecordsPage>
           ),
         ),
         actions: [
+          Builder(
+            builder: (context) {
+              if (databaseState.isDatabaseOpened) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      if (_tabController.index == 0) {
+                        await AddBookDialog.show(context);
+                      } else {
+                        await AddAuthorDialog.show(context);
+                      }
+                    },
+                    label: Text(
+                      'Add record',
+                      style: TextStyle(color: colorScheme.tertiary),
+                    ),
+                    icon: Icon(
+                      Icons.add_circle,
+                      color: colorScheme.tertiary,
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox();
+              }
+            },
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: TextButton.icon(
+              label: Text(
+                'Open databases folder',
+                style: TextStyle(color: colorScheme.tertiary),
+              ),
+              icon: Icon(
+                Icons.folder_rounded,
+                color: colorScheme.tertiary,
+              ),
+              onPressed: () async {
+                await ref
+                    .read(databaseNotifierProvider.notifier)
+                    .openDatabaseFolder();
+              },
+            ),
+          ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             child: TextButton.icon(
@@ -55,7 +105,8 @@ class _RecordsPageState extends State<RecordsPage>
                 color: colorScheme.tertiary,
               ),
               onPressed: () {
-                _showDbChangeDialog(context, selectedDatabase);
+                ref.read(databaseNotifierProvider.notifier).listAllFiles();
+                _showDbChangeDialog(context);
               },
             ),
           ),
@@ -83,14 +134,24 @@ class _RecordsPageState extends State<RecordsPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                if (databaseNotSelected)
-                  const EmptyTabView()
-                else
-                  const BooksTabView(),
-                if (databaseNotSelected)
-                  const EmptyTabView()
-                else
-                  const AuthorsTabView(),
+                Builder(
+                  builder: (context) {
+                    if (databaseState.isDatabaseOpened) {
+                      return const BooksTabView();
+                    } else {
+                      return const EmptyTabView();
+                    }
+                  },
+                ),
+                Builder(
+                  builder: (context) {
+                    if (databaseState.isDatabaseOpened) {
+                      return const AuthorsTabView();
+                    } else {
+                      return const EmptyTabView();
+                    }
+                  },
+                )
               ],
             ),
           ),
@@ -100,12 +161,10 @@ class _RecordsPageState extends State<RecordsPage>
     );
   }
 
-  void _showDbChangeDialog(BuildContext context, String? selectedDatabaseName) {
+  void _showDbChangeDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => SelectOrCreateDatabaseDialog(
-        selectedDatabase: selectedDatabaseName,
-      ),
+      builder: (context) => const SelectOrCreateDatabaseDialog(),
     );
   }
 }
