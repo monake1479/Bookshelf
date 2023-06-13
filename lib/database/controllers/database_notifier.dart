@@ -96,16 +96,21 @@ class DatabaseNotifier extends StateNotifier<DatabaseState> {
     state = state.copyWith(isLoading: true);
     final Directory documentsDirectory =
         await getApplicationDocumentsDirectory();
-
-    final List<FileSystemEntity> systemFiles =
-        Directory('${documentsDirectory.path}\\bookshelf\\').listSync();
-    final List<String> filesPaths = [];
-    for (final file in systemFiles) {
-      if (file.path.endsWith('.db')) {
-        filesPaths.add(file.path);
+    final Directory databaseDirectory =
+        Directory('${documentsDirectory.path}/bookshelf/');
+    if (databaseDirectory.existsSync()) {
+      final List<FileSystemEntity> systemFiles =
+          Directory('${documentsDirectory.path}\\bookshelf\\').listSync();
+      final List<String> filesPaths = [];
+      for (final file in systemFiles) {
+        if (file.path.endsWith('.db')) {
+          filesPaths.add(file.path);
+        }
       }
+      state = state.copyWith(isLoading: false, databaseList: filesPaths);
+    } else {
+      state = state.copyWith(isLoading: false, databaseList: []);
     }
-    state = state.copyWith(isLoading: false, databaseList: filesPaths);
   }
 
   String getDatabasePath() {
