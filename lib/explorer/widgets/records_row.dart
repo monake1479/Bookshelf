@@ -62,6 +62,15 @@ class _RecordsRowState extends State<RecordsRow> {
   void _createChildren() {
     _children = [];
     for (var i = 0; i < widget.children.length; i++) {
+      if (i == 0) {
+        _children.add(
+          SizedBox(
+            width: 50,
+            child: widget.children[i],
+          ),
+        );
+        continue;
+      }
       _children.add(
         Expanded(
           child: widget.children[i],

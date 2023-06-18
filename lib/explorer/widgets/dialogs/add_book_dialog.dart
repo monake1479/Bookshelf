@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +10,7 @@ import 'package:ztp_projekt/books/controllers/form/book_form_state.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_state.dart';
 import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+import 'package:ztp_projekt/common/widgets/select_text_field.dart';
 
 final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -31,7 +31,6 @@ class AddBookDialog extends StatefulWidget {
 class _AddBookDialogState extends State<AddBookDialog> {
   final TextEditingController _dateTextController = TextEditingController();
   final TextEditingController _priceTextController = TextEditingController();
-  bool _authorError = false;
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -48,38 +47,39 @@ class _AddBookDialogState extends State<AddBookDialog> {
             return true;
           },
           child: AlertDialog(
-            contentPadding: const EdgeInsets.all(8),
+            backgroundColor: colorScheme.surface,
+            contentPadding: const EdgeInsets.all(32),
+            title: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    bookFormNotifier.reset();
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
+                  child: Text(
+                    'Add book',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        bookFormNotifier.reset();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.close),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
-                      child: Text(
-                        'Add book',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall,
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  width: MediaQuery.of(context).size.width * 0.30,
+                  height: MediaQuery.of(context).size.height * 0.48,
+                  width: MediaQuery.of(context).size.width * 0.20,
                   child: Form(
                     key: _formKey,
                     child: ListView(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'Title',
@@ -95,57 +95,23 @@ class _AddBookDialogState extends State<AddBookDialog> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
-                            bottom: 10,
+                            bottom: 16,
                           ),
-                          child: DropdownButton2<Author>(
-                            isExpanded: true,
-                            onChanged: (author) {
-                              if (author != null) {
-                                setState(() {
-                                  _authorError = false;
-                                });
-                                bookFormNotifier.updateAuthor(author);
+                          child: SelectTextfield<Author>(
+                            label: 'Author',
+                            values: getAuthorsState.authors,
+                            displayValue: (author) => author.fullName,
+                            onSelected: bookFormNotifier.updateAuthor,
+                            validator: (author) {
+                              if (author == null) {
+                                return 'Select an author from the list';
                               }
+                              return null;
                             },
-                            underline: const SizedBox(),
-                            buttonStyleData: ButtonStyleData(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            dropdownStyleData: DropdownStyleData(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            value: bookFormState.author,
-                            items: getAuthorsState.authors
-                                .map(
-                                  (author) => DropdownMenuItem<Author>(
-                                    value: author,
-                                    child: Text(author.fullName),
-                                  ),
-                                )
-                                .toList(),
                           ),
-                        ),
-                        Builder(
-                          builder: (context) {
-                            if (_authorError) {
-                              return Text(
-                                'Field cannot by empty',
-                                style: TextStyle(
-                                  color: colorScheme.error,
-                                  fontSize: textTheme.bodySmall!.fontSize,
-                                ),
-                              );
-                            } else {
-                              return const SizedBox();
-                            }
-                          },
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'Publisher',
@@ -160,7 +126,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             controller: _dateTextController,
                             readOnly: true,
@@ -196,7 +162,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'ISBN number',
@@ -211,7 +177,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             controller: _priceTextController,
                             decoration: const InputDecoration(
@@ -248,20 +214,19 @@ class _AddBookDialogState extends State<AddBookDialog> {
                     ),
                   ),
                 ),
-                FilledButton.tonalIcon(
-                  style: FilledButton.styleFrom(
-                    shape: const RoundedRectangleBorder(),
-                  ),
-                  onPressed: () async {
-                    await _addOnPressed(ref, context);
-                  },
-                  icon: const Icon(
-                    Icons.add,
-                  ),
-                  label: const Text('Add'),
-                ),
               ],
             ),
+            actions: [
+              TextButton.icon(
+                onPressed: () async {
+                  await _addOnPressed(ref, context);
+                },
+                icon: const Icon(
+                  Icons.add,
+                ),
+                label: const Text('Add'),
+              ),
+            ],
           ),
         );
       },
@@ -286,7 +251,6 @@ class _AddBookDialogState extends State<AddBookDialog> {
 
   Future<void> _addOnPressed(WidgetRef ref, BuildContext context) async {
     final bookFormNotifier = ref.read(bookFormNotifierProvider.notifier);
-    final bookFormState = ref.read(bookFormNotifierProvider);
     if (ref.read(bookFormNotifierProvider).isFormValid) {
       await bookFormNotifier.insert();
       if (ref.read(manageBooksNotifierProvider).isException) {
@@ -303,11 +267,6 @@ class _AddBookDialogState extends State<AddBookDialog> {
       }
     } else {
       _formKey.currentState!.validate();
-      if (bookFormState.author == null) {
-        setState(() {
-          _authorError = true;
-        });
-      }
     }
   }
 

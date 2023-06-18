@@ -11,6 +11,7 @@ class BookshelfException with _$BookshelfException {
   const factory BookshelfException.databaseIsClosed() = _DatabaseIsClosed;
   const factory BookshelfException.insertError() = _InsertError;
   const factory BookshelfException.updateError() = _UpdateError;
+  const factory BookshelfException.authorNotFoundError() = _AuthorNotFoundError;
   const factory BookshelfException.custom({
     @Default('Something went wrong, please try again later.') String message,
   }) = _Custom;
@@ -27,6 +28,8 @@ extension BookshelfExceptionEx on BookshelfException {
       insertError: () =>
           'We cannot insert requested values to database, please check provided table name and values amount.',
       updateError: () => 'We cannot update requested record.',
+      authorNotFoundError: () =>
+          'Author not found! You need to remove this book.',
       custom: (message) => message,
       orElse: () => '',
     );

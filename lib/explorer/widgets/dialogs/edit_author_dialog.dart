@@ -55,32 +55,31 @@ class _EditAuthorDialogState extends State<EditAuthorDialog> {
             return true;
           },
           child: AlertDialog(
-            contentPadding: const EdgeInsets.all(8),
+            contentPadding: const EdgeInsets.all(32),
+            title: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    authorsFormNotifier.reset();
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
+                  child: Text(
+                    'Edit author',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        authorsFormNotifier.reset();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.close),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
-                      child: Text(
-                        'Edit author',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall,
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  width: MediaQuery.of(context).size.width * 0.30,
+                  width: MediaQuery.of(context).size.width * 0.20,
                   child: Column(
                     children: [
                       Padding(
@@ -115,23 +114,22 @@ class _EditAuthorDialogState extends State<EditAuthorDialog> {
                           },
                         ),
                       ),
-                      FilledButton.tonalIcon(
-                        style: FilledButton.styleFrom(
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                        onPressed: () async {
-                          await _editOnPressed(ref, context);
-                        },
-                        icon: const Icon(
-                          Icons.edit,
-                        ),
-                        label: const Text('Edit'),
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
+            actions: [
+              TextButton.icon(
+                onPressed: () async {
+                  await _editOnPressed(ref, context);
+                },
+                icon: const Icon(
+                  Icons.edit,
+                ),
+                label: const Text('Edit'),
+              ),
+            ],
           ),
         );
       },

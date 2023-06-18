@@ -8,6 +8,7 @@ import 'package:ztp_projekt/database/repositories/sqlite_database_repository.dar
 
 final sqliteDatabaseRepositoryProvider = Provider<DatabaseInterface>(
   (ref) => SqliteDatabaseRepository(),
+  name: 'SqliteDatabaseRepositoryProvider',
 );
 
 final databaseNotifierProvider =
@@ -17,4 +18,5 @@ final databaseNotifierProvider =
     ref.watch(manageAuthorsNotifierProvider.notifier),
     ref.watch(manageBooksNotifierProvider.notifier),
   ),
+  name: 'DatabaseNotifierProvider',
 );

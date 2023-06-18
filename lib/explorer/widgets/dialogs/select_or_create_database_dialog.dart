@@ -11,6 +11,11 @@ class SelectOrCreateDatabaseDialog extends StatefulWidget {
     super.key,
   });
 
+  static Future<void> show(BuildContext context) => showDialog<void>(
+        context: context,
+        builder: (context) => const SelectOrCreateDatabaseDialog(),
+      );
+
   @override
   State<SelectOrCreateDatabaseDialog> createState() =>
       _SelectOrCreateDatabaseDialogState();

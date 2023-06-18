@@ -28,33 +28,42 @@ class BookshelfExceptionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     return AlertDialog(
-      contentPadding: const EdgeInsets.all(20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+      contentPadding: const EdgeInsets.all(32),
+      title: Row(
         children: [
-          Text(
-            exception.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              decoration: TextDecoration.underline,
-              color: colorScheme.error,
-              fontSize: 16,
-            ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 30),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onPressed,
-                child: const Text('Ok'),
-              ),
+            padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
+            child: Text(
+              'Error',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall,
             ),
           ),
         ],
       ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.20,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              exception.description,
+              style: theme.textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }

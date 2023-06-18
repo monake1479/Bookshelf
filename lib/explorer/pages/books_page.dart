@@ -6,25 +6,34 @@ import 'package:intl/intl.dart';
 import 'package:ztp_projekt/books/controllers/manage_books/manage_books_state.dart';
 import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/books/models/book.dart';
-import 'package:ztp_projekt/common/widgets/bookshelf_error_dialog.dart';
+import 'package:ztp_projekt/books/models/books_sort_field.dart';
+import 'package:ztp_projekt/common/models/bookshelf_exception.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+import 'package:ztp_projekt/explorer/models/sort_field.dart';
+import 'package:ztp_projekt/explorer/models/sort_record.dart';
+import 'package:ztp_projekt/explorer/providers.dart';
+import 'package:ztp_projekt/explorer/utils/state_to_record_transformer.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/edit_book_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/record_actions.dart';
 import 'package:ztp_projekt/explorer/widgets/record_header_cell.dart';
 import 'package:ztp_projekt/explorer/widgets/records_row.dart';
 
-class BooksTabView extends StatelessWidget {
-  const BooksTabView({
+class BooksPage extends ConsumerWidget {
+  const BooksPage({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final sortBooksState = ref.watch(sortBooksNotifierProvider);
+    final sortNotifier = ref.read(sortNotifierProvider.notifier);
+
     return CustomScrollView(
       slivers: [
         SliverAppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: ElevationOverlay.applySurfaceTint(
             colorScheme.surface,
             colorScheme.surfaceTint,
@@ -37,6 +46,13 @@ class BooksTabView extends StatelessWidget {
           flexibleSpace: RecordsRow(
             canHover: false,
             children: [
+              RecordHeaderCell.static(
+                title: 'ID',
+                textStyle: theme.textTheme.titleMedium!.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               RecordHeaderCell(
                 title: 'Name',
                 textStyle: theme.textTheme.titleMedium!.copyWith(
@@ -45,7 +61,10 @@ class BooksTabView extends StatelessWidget {
                 ),
                 iconColor: colorScheme.tertiary.withOpacity(0.5),
                 selectedIconColor: colorScheme.tertiary,
-                onChanged: print,
+                onChanged: (value) => _onRecordHeaderCellChange(value, ref),
+                stateStream: sortNotifier.stream
+                    .transform<SortRecord?>(StateToRecordTransformer()),
+                sortField: SortField.bookTitle,
               ),
               RecordHeaderCell.static(
                 title: 'Author',
@@ -69,7 +88,10 @@ class BooksTabView extends StatelessWidget {
                 ),
                 iconColor: colorScheme.tertiary.withOpacity(0.5),
                 selectedIconColor: colorScheme.tertiary,
-                onChanged: print,
+                onChanged: (value) => _onRecordHeaderCellChange(value, ref),
+                stateStream: sortNotifier.stream
+                    .transform<SortRecord?>(StateToRecordTransformer()),
+                sortField: SortField.bookPublicationDate,
               ),
               RecordHeaderCell.static(
                 title: 'ISBN',
@@ -86,7 +108,10 @@ class BooksTabView extends StatelessWidget {
                 ),
                 iconColor: colorScheme.tertiary.withOpacity(0.5),
                 selectedIconColor: colorScheme.tertiary,
-                onChanged: print,
+                onChanged: (value) => _onRecordHeaderCellChange(value, ref),
+                stateStream: sortNotifier.stream
+                    .transform<SortRecord?>(StateToRecordTransformer()),
+                sortField: SortField.bookPrice,
               ),
               RecordHeaderCell.static(
                 title: 'Actions',
@@ -98,10 +123,9 @@ class BooksTabView extends StatelessWidget {
             ],
           ),
         ),
-        Consumer(
-          builder: (context, ref, child) {
-            final getBooksState = ref.watch(getBooksNotifierProvider);
-            if (getBooksState.books.isEmpty) {
+        Builder(
+          builder: (context) {
+            if (sortBooksState.books.isEmpty) {
               return const SliverPadding(
                 padding: EdgeInsets.only(top: 20),
                 sliver: SliverToBoxAdapter(
@@ -120,34 +144,36 @@ class BooksTabView extends StatelessWidget {
                       vertical: 8,
                     ),
                     children: [
-                      Text(getBooksState.books[index].title),
-                      Text(getBooksState.books[index].authorName),
-                      Text(getBooksState.books[index].publisher),
+                      Text(sortBooksState.books[index].id.toString()),
+                      Text(sortBooksState.books[index].title),
+                      Text(sortBooksState.books[index].authorName),
+                      Text(sortBooksState.books[index].publisher),
                       Text(
-                        DateFormat('dd-MM-yyyy')
-                            .format(getBooksState.books[index].publicationDate),
+                        DateFormat('dd-MM-yyyy').format(
+                          sortBooksState.books[index].publicationDate,
+                        ),
                       ),
-                      Text(getBooksState.books[index].isbnNumber),
-                      Text('${getBooksState.books[index].price}'),
+                      Text(sortBooksState.books[index].isbnNumber),
+                      Text('${sortBooksState.books[index].price}'),
                       RecordActions(
                         onEdit: () async {
                           await _onBookEditTap(
                             ref,
                             context,
-                            getBooksState.books[index],
+                            sortBooksState.books[index],
                           );
                         },
                         onDelete: () async {
                           await _onBookDeleteTap(
                             ref,
                             context,
-                            getBooksState.books[index].id,
+                            sortBooksState.books[index].id,
                           );
                         },
                       ),
                     ],
                   ),
-                  childCount: getBooksState.books.length,
+                  childCount: sortBooksState.books.length,
                 ),
               );
             }
@@ -155,6 +181,14 @@ class BooksTabView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _onRecordHeaderCellChange(SortRecord value, WidgetRef ref) {
+    ref.read(sortBooksNotifierProvider.notifier).setSort(
+          value.type,
+          BooksSortFieldX.fromSortField(value.field),
+        );
+    ref.read(sortNotifierProvider.notifier).setSortType(value);
   }
 
   Future<void> _onBookEditTap(
@@ -169,9 +203,9 @@ class BooksTabView extends StatelessWidget {
         book,
       );
     } else {
-      await BookshelfErrorDialog.show(
+      await BookshelfExceptionDialog.show(
         context,
-        'We cannot find author of this book. You will have to remove the book.',
+        const BookshelfException.authorNotFoundError(),
         () {},
       );
     }

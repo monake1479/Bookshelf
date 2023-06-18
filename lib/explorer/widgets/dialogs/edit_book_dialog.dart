@@ -1,6 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +12,8 @@ import 'package:ztp_projekt/books/controllers/manage_books/manage_books_state.da
 import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/books/models/book.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+
+import 'package:ztp_projekt/common/widgets/select_text_field.dart';
 
 class EditBookDialog extends StatefulWidget {
   const EditBookDialog({required this.book, super.key});
@@ -69,32 +71,32 @@ class _EditBookDialogState extends State<EditBookDialog> {
             return true;
           },
           child: AlertDialog(
-            contentPadding: const EdgeInsets.all(8),
+            contentPadding: const EdgeInsets.all(32),
+            title: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    bookFormNotifier.reset();
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
+                  child: Text(
+                    'Edit book',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        bookFormNotifier.reset();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.close),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
-                      child: Text(
-                        'Edit book',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall,
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.45,
-                  width: MediaQuery.of(context).size.width * 0.30,
+                  width: MediaQuery.of(context).size.width * 0.20,
                   child: ListView(
                     children: [
                       Padding(
@@ -115,35 +117,23 @@ class _EditBookDialogState extends State<EditBookDialog> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(
-                          bottom: 10,
+                          bottom: 16,
                         ),
-                        child: DropdownButton2<Author>(
-                          isExpanded: true,
-                          onChanged: (author) {
-                            if (author != null) {
-                              bookFormNotifier.updateAuthor(author);
+                        child: SelectTextfield<Author>(
+                          label: 'Author',
+                          values: getAuthorsState.authors,
+                          displayValue: (author) => author.fullName,
+                          onSelected: bookFormNotifier.updateAuthor,
+                          initialSelection:
+                              getAuthorsState.authors.firstWhereOrNull(
+                            (author) => author.id == widget.book.authorId,
+                          ),
+                          validator: (author) {
+                            if (author == null) {
+                              return 'Select an author from the list';
                             }
+                            return null;
                           },
-                          underline: const SizedBox(),
-                          buttonStyleData: ButtonStyleData(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          dropdownStyleData: DropdownStyleData(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          value: bookFormState.author,
-                          items: getAuthorsState.authors
-                              .map(
-                                (author) => DropdownMenuItem<Author>(
-                                  value: author,
-                                  child: Text(author.fullName),
-                                ),
-                              )
-                              .toList(),
                         ),
                       ),
                       Padding(

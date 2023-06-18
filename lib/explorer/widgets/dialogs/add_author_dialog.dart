@@ -41,38 +41,37 @@ class _AddAuthorDialogState extends State<AddAuthorDialog> {
             return true;
           },
           child: AlertDialog(
-            contentPadding: const EdgeInsets.all(8),
+            contentPadding: const EdgeInsets.all(32),
+            title: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    authorsFormNotifier.reset();
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
+                  child: Text(
+                    'Add author',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        authorsFormNotifier.reset();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.close),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 3),
-                      child: Text(
-                        'Add author',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall,
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  width: MediaQuery.of(context).size.width * 0.30,
+                  width: MediaQuery.of(context).size.width * 0.20,
                   child: Form(
                     key: _formKey,
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'First name',
@@ -86,32 +85,17 @@ class _AddAuthorDialogState extends State<AddAuthorDialog> {
                             onChanged: authorsFormNotifier.updateFirstName,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Last name',
-                            ),
-                            validator: (lastName) {
-                              if (lastName == null || lastName.isEmpty) {
-                                return 'Field cannot be empty';
-                              }
-                              return null;
-                            },
-                            onChanged: authorsFormNotifier.updateLastName,
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Last name',
                           ),
-                        ),
-                        FilledButton.tonalIcon(
-                          style: FilledButton.styleFrom(
-                            shape: const RoundedRectangleBorder(),
-                          ),
-                          onPressed: () async {
-                            await _insertOnPressed(ref, context);
+                          validator: (lastName) {
+                            if (lastName == null || lastName.isEmpty) {
+                              return 'Field cannot be empty';
+                            }
+                            return null;
                           },
-                          icon: const Icon(
-                            Icons.add,
-                          ),
-                          label: const Text('Add'),
+                          onChanged: authorsFormNotifier.updateLastName,
                         ),
                       ],
                     ),
@@ -119,6 +103,17 @@ class _AddAuthorDialogState extends State<AddAuthorDialog> {
                 ),
               ],
             ),
+            actions: [
+              TextButton.icon(
+                onPressed: () async {
+                  await _insertOnPressed(ref, context);
+                },
+                icon: const Icon(
+                  Icons.add,
+                ),
+                label: const Text('Add'),
+              ),
+            ],
           ),
         );
       },

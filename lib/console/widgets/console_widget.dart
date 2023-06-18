@@ -1,32 +1,57 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ztp_projekt/command_prompt/providers.dart';
 import 'package:ztp_projekt/common/shortcuts/intents/save_intent.dart';
 import 'package:ztp_projekt/common/utils/color_at_elevation.dart';
 import 'package:ztp_projekt/console/command_line.dart';
 
-class ConsoleWidget extends StatefulWidget {
+class ConsoleWidget extends ConsumerStatefulWidget {
   const ConsoleWidget({
     super.key,
   });
 
   @override
-  State<ConsoleWidget> createState() => _ConsoleWidgetState();
+  ConsumerState<ConsoleWidget> createState() => _ConsoleWidgetState();
 }
 
-class _ConsoleWidgetState extends State<ConsoleWidget> {
-  final TextEditingController _historyTextController = TextEditingController();
+class _ConsoleWidgetState extends ConsumerState<ConsoleWidget> {
+  late TextEditingController _historyTextController;
   final TextEditingController _commandLineTextController =
       TextEditingController();
   final ScrollController _historyScrollController = ScrollController();
 
   @override
   void initState() {
-    _historyTextController.text =
-        '[BookShelf v1] database initialized \ntype "help" for more information';
+    _historyTextController =
+        ref.read(commandPromptHistoryTextControllerProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _historyTextController.text =
+          ref.read(commandPromptNotifierProvider).lastMessage;
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(
+      commandPromptNotifierProvider,
+      (previous, next) {
+        if (!next.isWorking) {
+          _historyTextController.text += next.lastMessage;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _historyScrollController.animateTo(
+              _historyScrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          });
+        }
+      },
+    );
+    log('ConsoleWidget.build');
+
     final colorScheme = Theme.of(context).colorScheme;
     return Actions(
       actions: <Type, Action<Intent>>{
@@ -76,8 +101,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _onSave(String value) {
-    _historyTextController.text +=
-        '\n> $value \ncommand not recognized\ntype "help" for more information';
+    ref.read(commandPromptNotifierProvider.notifier).onCommand(value);
     _commandLineTextController.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _historyScrollController.animateTo(

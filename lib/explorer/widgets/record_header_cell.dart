@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:ztp_projekt/common/utils/color_at_elevation.dart';
+import 'package:ztp_projekt/explorer/models/sort_field.dart';
+import 'package:ztp_projekt/explorer/models/sort_record.dart';
+import 'package:ztp_projekt/explorer/models/sort_type_enum.dart';
 
 class RecordHeaderCell extends StatefulWidget {
   const RecordHeaderCell({
@@ -9,6 +14,8 @@ class RecordHeaderCell extends StatefulWidget {
     required this.onChanged,
     required this.textStyle,
     required this.selectedIconColor,
+    required this.stateStream,
+    required this.sortField,
   }) : canFilter = true;
 
   const RecordHeaderCell.static({
@@ -18,14 +25,18 @@ class RecordHeaderCell extends StatefulWidget {
   })  : canFilter = false,
         iconColor = Colors.transparent,
         selectedIconColor = Colors.transparent,
-        onChanged = _defaultOnChanged;
+        onChanged = _defaultOnChanged,
+        stateStream = const Stream.empty(),
+        sortField = null;
 
   final String title;
   final Color iconColor;
   final Color selectedIconColor;
   final TextStyle textStyle;
   final bool canFilter;
-  final void Function(RecordHeaderCellState value) onChanged;
+  final SortField? sortField;
+  final Stream<SortRecord?>? stateStream;
+  final void Function(SortRecord value) onChanged;
 
   @override
   State<RecordHeaderCell> createState() => _RecordHeaderCellState();
@@ -37,12 +48,25 @@ class _RecordHeaderCellState extends State<RecordHeaderCell>
   late AnimationController _descendingAnimationController;
   late Animation<Color?> _ascendingAnimation;
   late Animation<Color?> _descendingAnimation;
-  RecordHeaderCellState _state = RecordHeaderCellState.none;
+  SortType _state = SortType.none;
+
+  StreamSubscription<SortRecord?>? _streamSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsFlutterBinding.ensureInitialized();
+    _streamSubscription = widget.stateStream!.listen((event) {
+      if (event == null) {
+        _onStateChanged(SortType.none);
+        return;
+      }
+      if (event.field != widget.sortField) {
+        _onStateChanged(SortType.none);
+        return;
+      }
+      _onStateChanged(event.type);
+    });
     _ascendingAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -62,6 +86,8 @@ class _RecordHeaderCellState extends State<RecordHeaderCell>
   @override
   void dispose() {
     _ascendingAnimationController.dispose();
+    _descendingAnimationController.dispose();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -121,36 +147,55 @@ class _RecordHeaderCellState extends State<RecordHeaderCell>
 
   void _onTap() {
     switch (_state) {
-      case RecordHeaderCellState.none:
+      case SortType.none:
         _ascendingAnimationController.forward();
+
         setState(() {
-          _state = RecordHeaderCellState.ascending;
+          _state = SortType.ascending;
         });
-        widget.onChanged(RecordHeaderCellState.ascending);
         break;
-      case RecordHeaderCellState.ascending:
+      case SortType.ascending:
         _ascendingAnimationController.reverse();
         _descendingAnimationController.forward();
+
         setState(() {
-          _state = RecordHeaderCellState.descending;
+          _state = SortType.descending;
         });
-        widget.onChanged(RecordHeaderCellState.descending);
         break;
-      case RecordHeaderCellState.descending:
+      case SortType.descending:
         _descendingAnimationController.reverse();
         setState(() {
-          _state = RecordHeaderCellState.none;
+          _state = SortType.none;
         });
-        widget.onChanged(RecordHeaderCellState.none);
+        break;
+    }
+    if (_state == SortType.none) {
+      widget
+          .onChanged(SortRecord(field: widget.sortField!, type: SortType.none));
+    } else {
+      widget.onChanged(SortRecord(field: widget.sortField!, type: _state));
+    }
+  }
+
+  void _onStateChanged(SortType newState) {
+    setState(() {
+      _state = newState;
+    });
+    switch (_state) {
+      case SortType.none:
+        _ascendingAnimationController.reverse();
+        _descendingAnimationController.reverse();
+        break;
+      case SortType.ascending:
+        _ascendingAnimationController.forward();
+        _descendingAnimationController.reverse();
+        break;
+      case SortType.descending:
+        _ascendingAnimationController.reverse();
+        _descendingAnimationController.forward();
         break;
     }
   }
 }
 
-enum RecordHeaderCellState {
-  none,
-  ascending,
-  descending,
-}
-
-void _defaultOnChanged(RecordHeaderCellState value) {}
+void _defaultOnChanged(SortRecord value) {}

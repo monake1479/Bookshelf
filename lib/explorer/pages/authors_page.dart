@@ -5,24 +5,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/authors/controllers/manage_authors/manage_authors_state.dart';
 import 'package:ztp_projekt/authors/controllers/providers.dart';
 import 'package:ztp_projekt/authors/models/author.dart';
+import 'package:ztp_projekt/authors/models/author_sort_field.dart';
 import 'package:ztp_projekt/common/widgets/bookshelf_exception_dialog.dart';
+import 'package:ztp_projekt/explorer/models/sort_field.dart';
+import 'package:ztp_projekt/explorer/models/sort_record.dart';
+import 'package:ztp_projekt/explorer/providers.dart';
+import 'package:ztp_projekt/explorer/utils/state_to_record_transformer.dart';
 import 'package:ztp_projekt/explorer/widgets/dialogs/edit_author_dialog.dart';
 import 'package:ztp_projekt/explorer/widgets/record_actions.dart';
 import 'package:ztp_projekt/explorer/widgets/record_header_cell.dart';
 import 'package:ztp_projekt/explorer/widgets/records_row.dart';
 
-class AuthorsTabView extends StatelessWidget {
-  const AuthorsTabView({
+class AuthorsPage extends ConsumerWidget {
+  const AuthorsPage({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sortedAuthorsState = ref.watch(sortAuthorsNotifierProvider);
+    final sortNotifier = ref.read(sortNotifierProvider.notifier);
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     return CustomScrollView(
       slivers: [
         SliverAppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: ElevationOverlay.applySurfaceTint(
             colorScheme.surface,
             colorScheme.surfaceTint,
@@ -35,6 +43,13 @@ class AuthorsTabView extends StatelessWidget {
           flexibleSpace: RecordsRow(
             canHover: false,
             children: [
+              RecordHeaderCell.static(
+                title: 'ID',
+                textStyle: theme.textTheme.titleMedium!.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               RecordHeaderCell(
                 title: 'Name',
                 textStyle: theme.textTheme.titleMedium!.copyWith(
@@ -43,14 +58,23 @@ class AuthorsTabView extends StatelessWidget {
                 ),
                 iconColor: colorScheme.tertiary.withOpacity(0.5),
                 selectedIconColor: colorScheme.tertiary,
-                onChanged: print,
+                onChanged: (value) => _onRecordHeaderCellChange(value, ref),
+                stateStream: sortNotifier.stream
+                    .transform<SortRecord?>(StateToRecordTransformer()),
+                sortField: SortField.authorFirstName,
               ),
-              RecordHeaderCell.static(
+              RecordHeaderCell(
                 title: 'Last Name',
                 textStyle: theme.textTheme.titleMedium!.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
+                iconColor: colorScheme.tertiary.withOpacity(0.5),
+                selectedIconColor: colorScheme.tertiary,
+                onChanged: (value) => _onRecordHeaderCellChange(value, ref),
+                stateStream: sortNotifier.stream
+                    .transform<SortRecord?>(StateToRecordTransformer()),
+                sortField: SortField.authorLastName,
               ),
               RecordHeaderCell.static(
                 title: 'Actions',
@@ -62,11 +86,9 @@ class AuthorsTabView extends StatelessWidget {
             ],
           ),
         ),
-        Consumer(
-          builder: (context, ref, child) {
-            final getAuthorsState = ref.watch(getAuthorsNotifierProvider);
-
-            if (getAuthorsState.authors.isEmpty) {
+        Builder(
+          builder: (context) {
+            if (sortedAuthorsState.authors.isEmpty) {
               return const SliverPadding(
                 padding: EdgeInsets.only(top: 20),
                 sliver: SliverToBoxAdapter(
@@ -85,27 +107,28 @@ class AuthorsTabView extends StatelessWidget {
                       vertical: 8,
                     ),
                     children: [
-                      Text(getAuthorsState.authors[index].firstName),
-                      Text(getAuthorsState.authors[index].lastName),
+                      Text(sortedAuthorsState.authors[index].id.toString()),
+                      Text(sortedAuthorsState.authors[index].firstName),
+                      Text(sortedAuthorsState.authors[index].lastName),
                       RecordActions(
                         onEdit: () async {
                           await _onAuthorEditTap(
                             ref,
                             context,
-                            getAuthorsState.authors[index],
+                            sortedAuthorsState.authors[index],
                           );
                         },
                         onDelete: () async {
                           await _onAuthorDeleteTap(
                             ref,
                             context,
-                            getAuthorsState.authors[index].id,
+                            sortedAuthorsState.authors[index].id,
                           );
                         },
                       ),
                     ],
                   ),
-                  childCount: getAuthorsState.authors.length,
+                  childCount: sortedAuthorsState.authors.length,
                 ),
               );
             }
@@ -113,6 +136,19 @@ class AuthorsTabView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _onRecordHeaderCellChange(
+    SortRecord value,
+    WidgetRef ref,
+  ) {
+    ref.read(sortAuthorsNotifierProvider.notifier).setSort(
+          value.type,
+          AuthorSortFieldX.fromSortField(value.field),
+        );
+    ref.read(sortNotifierProvider.notifier).setSortType(
+          value,
+        );
   }
 
   Future<void> _onAuthorEditTap(
