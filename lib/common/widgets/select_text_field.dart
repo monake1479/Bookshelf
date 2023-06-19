@@ -106,6 +106,7 @@ class _SelectTextfieldState<T> extends State<SelectTextfield<T>> {
   void _hideDropdownMenu() {
     if (_dropdownEntry?.mounted ?? false) {
       _dropdownEntry?.remove();
+      _dropdownEntry = null;
     }
   }
 
