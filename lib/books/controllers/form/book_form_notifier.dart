@@ -56,6 +56,27 @@ class BookFormNotifier extends StateNotifier<BookFormState> {
     state = BookFormState.initial();
   }
 
+  Future<void> updateForm({
+    required String title,
+    required String publisher,
+    int? authorId,
+    required DateTime publicationDate,
+    required String isbnNumber,
+    required double price,
+  }) async {
+    if (authorId != null) {
+      await _setAuthor(authorId);
+    }
+    state = state.copyWith(
+      title: title,
+      publisher: publisher,
+      publicationDate: publicationDate,
+      isbnNumber: isbnNumber,
+      price: price,
+    );
+    return;
+  }
+
   void updateAuthor(Author author) {
     state = state.copyWith(author: author);
   }

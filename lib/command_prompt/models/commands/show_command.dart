@@ -1,14 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/command_prompt/models/command.dart';
 import 'package:ztp_projekt/command_prompt/models/command_validation_error.dart';
+import 'package:ztp_projekt/command_prompt/providers.dart';
 import 'package:ztp_projekt/explorer/models/current_tab_enum.dart';
 import 'package:ztp_projekt/explorer/providers.dart';
 
 final _tables = ['authors', 'books'];
 
-class SwitchCommand implements Command {
+class ShowCommand implements Command {
   @override
-  String get command => 'switch';
+  String get command => 'show';
 
   @override
   String get description =>
@@ -22,6 +23,9 @@ class SwitchCommand implements Command {
   ) async {
     final tabToSwitchTo = CurrentTabFactory.fromString(args[0].toLowerCase());
     ref.read(recordsStreamControllerProvider).add(tabToSwitchTo);
+    ref
+        .read(commandPromptStreamControllerProvider)
+        .add('\nSwitched to ${tabToSwitchTo.name} tab');
     return null;
   }
 
@@ -49,7 +53,7 @@ class SwitchCommand implements Command {
   @override
   String printUsage() {
     final List<String> usage = [
-      'Usage: /switch <table>',
+      'Usage: switch <table>',
       'Switches the current tab between the authors and books',
       'Available tables: ${_tables.join(', ')}',
     ];

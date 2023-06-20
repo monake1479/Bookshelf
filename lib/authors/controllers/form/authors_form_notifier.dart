@@ -33,6 +33,13 @@ class AuthorsFormNotifier extends StateNotifier<AuthorsFormState> {
     );
   }
 
+  void updateForm({required String firstName, required String lastName}) {
+    state = state.copyWith(
+      firstName: firstName,
+      lastName: lastName,
+    );
+  }
+
   void updateFirstName(String firstName) {
     state = state.copyWith(firstName: firstName);
   }

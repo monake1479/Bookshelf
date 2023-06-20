@@ -5,6 +5,7 @@ import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/books/models/books_sort_field.dart';
 import 'package:ztp_projekt/command_prompt/models/command.dart';
 import 'package:ztp_projekt/command_prompt/models/command_validation_error.dart';
+import 'package:ztp_projekt/command_prompt/providers.dart';
 import 'package:ztp_projekt/explorer/models/sort_field.dart';
 import 'package:ztp_projekt/explorer/models/sort_record.dart';
 import 'package:ztp_projekt/explorer/models/sort_type_enum.dart';
@@ -24,7 +25,7 @@ class SortCommand implements Command {
       'Sorts the list of books or authors by a given field.';
 
   @override
-  Future<String?> execute(
+  Future<void> execute(
     List<String> args,
     Ref<Object?> ref,
     List<Command> availableCommands,
@@ -45,16 +46,17 @@ class SortCommand implements Command {
             sortingType,
             BooksSortFieldX.fromSortField(sortingField),
           );
-      return null;
     } else if (tableName == _tables[1]) {
       ref.read(sortAuthorsNotifierProvider.notifier).setSort(
             sortingType,
             AuthorSortFieldX.fromSortField(sortingField),
           );
-      return null;
     } else {
       throw ArgumentError('Invalid table name');
     }
+    ref
+        .read(commandPromptStreamControllerProvider)
+        .add('\nSorted by $fieldName $order');
   }
 
   @override
@@ -103,7 +105,7 @@ class SortCommand implements Command {
   @override
   String printUsage() {
     final List<String> lines = [
-      'Usage: /sort <table> <field> <order>',
+      'Usage: sort <table> <field> <order>',
       'Sorts the list of books or authors by a given field.',
       '<table> - table to sort. Possible values: $_tables.',
       '<field> - field to sort by, Possible values: table books $_bookFields, table authors $_authorFields.',

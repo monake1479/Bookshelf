@@ -14,7 +14,7 @@ abstract class Command {
   String get command => _command;
   String get description => _description;
 
-  Future<String?> execute(
+  Future<void> execute(
     List<String> args,
     Ref ref,
     List<Command> availableCommands,

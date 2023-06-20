@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ztp_projekt/command_prompt/models/command.dart';
 import 'package:ztp_projekt/command_prompt/models/command_validation_error.dart';
+import 'package:ztp_projekt/command_prompt/providers.dart';
 
 class HelpCommand implements Command {
   @override
@@ -12,7 +13,7 @@ class HelpCommand implements Command {
       'specific command';
 
   @override
-  Future<String?> execute(
+  Future<void> execute(
     List<String> args,
     Ref ref,
     List<Command> availableCommands,
@@ -20,15 +21,19 @@ class HelpCommand implements Command {
     if (args.isEmpty) {
       final List<String> lines = [
         'Available commands:',
-        ...availableCommands.map((e) => '/${e.command} - ${e.description}'),
+        ...availableCommands.map((e) => '${e.command} - ${e.description}'),
       ];
-      return lines.join('\n');
+      return ref
+          .read(commandPromptStreamControllerProvider)
+          .add('\n${lines.join('\n')}');
     } else {
       final foundCommand = availableCommands.firstWhereOrNull(
         (element) => element.command == args[0].toLowerCase(),
       );
       if (foundCommand != null) {
-        return foundCommand.printUsage();
+        ref
+            .read(commandPromptStreamControllerProvider)
+            .add('\n${foundCommand.printUsage()}');
       }
     }
     return Future.value();
@@ -37,7 +42,7 @@ class HelpCommand implements Command {
   @override
   String printUsage() {
     const List<String> lines = [
-      'Usage: /help [command]',
+      'Usage: help [command]',
       'Displays list of available commands or help for specific command',
       'if command is specified, displays usage of that command'
     ];

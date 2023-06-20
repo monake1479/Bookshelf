@@ -4,10 +4,11 @@ import 'package:ztp_projekt/authors/controllers/providers.dart';
 import 'package:ztp_projekt/books/controllers/providers.dart';
 import 'package:ztp_projekt/command_prompt/models/command.dart';
 import 'package:ztp_projekt/command_prompt/models/command_validation_error.dart';
+import 'package:ztp_projekt/command_prompt/providers.dart';
 
 const _tables = [
-  'books',
-  'authors',
+  'book',
+  'author',
 ];
 
 class DeleteCommand implements Command {
@@ -18,7 +19,7 @@ class DeleteCommand implements Command {
   String get description => 'Deletes a record from the database';
 
   @override
-  Future<String?> execute(
+  Future<void> execute(
     List<String> args,
     Ref ref,
     List<Command> availableCommands,
@@ -26,12 +27,17 @@ class DeleteCommand implements Command {
     final table = args[0].toLowerCase();
     final id = int.parse(args[1].toLowerCase());
     if (table == _tables[0]) {
+      ref
+          .read(commandPromptStreamControllerProvider)
+          .add('\nRecord deleted successfully');
       await ref.read(manageBooksNotifierProvider.notifier).delete(id);
     }
     if (table == _tables[1]) {
+      ref
+          .read(commandPromptStreamControllerProvider)
+          .add('\nRecord deleted successfully');
       await ref.read(manageAuthorsNotifierProvider.notifier).delete(id);
     }
-    return null;
   }
 
   @override
@@ -40,14 +46,14 @@ class DeleteCommand implements Command {
     Ref ref,
     List<Command> availableCommands,
   ) {
-    final table = args[0].toLowerCase();
-    final id = args[1].toLowerCase();
     if (args.length != 2) {
       return CommandValidationError(
         message: 'Invalid number of arguments',
         command: command,
       );
     }
+    final table = args[0].toLowerCase();
+    final id = args[1].toLowerCase();
     if (!_tables.contains(table)) {
       return CommandValidationError(
         message: 'Invalid table name',
@@ -78,6 +84,16 @@ class DeleteCommand implements Command {
       if (author == null) {
         return CommandValidationError(
           message: 'Author with ID $parsedId does not exist',
+          command: command,
+        );
+      }
+      //check if author does not have any books
+      final books = ref.watch(getBooksNotifierProvider).books;
+      final booksByAuthor = books.where((book) => book.authorId == parsedId);
+      if (booksByAuthor.isNotEmpty) {
+        return CommandValidationError(
+          message:
+              'Author with ID $parsedId has books assigned to him, delete them first',
           command: command,
         );
       }

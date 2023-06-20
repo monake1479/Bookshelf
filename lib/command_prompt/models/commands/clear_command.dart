@@ -11,19 +11,19 @@ class ClearCommand implements Command {
   String get description => 'Clears the command prompt history';
 
   @override
-  Future<String?> execute(
+  Future<void> execute(
     List<String> args,
     Ref ref,
     List<Command> availableCommands,
   ) async {
     ref.read(commandPromptHistoryTextControllerProvider).text = '';
-    return 'Cleared.';
+    return;
   }
 
   @override
   String printUsage() {
     final List<String> usage = [
-      'Usage: /clear',
+      'Usage: clear',
       'Clears the command prompt history',
     ];
     return usage.join('\n');

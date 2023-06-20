@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,37 +21,32 @@ class _ConsoleWidgetState extends ConsumerState<ConsoleWidget> {
   final TextEditingController _commandLineTextController =
       TextEditingController();
   final ScrollController _historyScrollController = ScrollController();
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
     _historyTextController =
         ref.read(commandPromptHistoryTextControllerProvider);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _historyTextController.text =
-          ref.read(commandPromptNotifierProvider).lastMessage;
+      _historyTextController.text +=
+          '[BookShelf v1.0.0] initialized \nType "help" for more information.';
+    });
+    final controller = ref.read(commandPromptStreamControllerProvider);
+    _subscription = controller.stream.listen((event) {
+      _historyTextController.text += event;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _historyScrollController.animateTo(
+          _historyScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      });
     });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(
-      commandPromptNotifierProvider,
-      (previous, next) {
-        if (!next.isWorking) {
-          _historyTextController.text += next.lastMessage;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _historyScrollController.animateTo(
-              _historyScrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
-          });
-        }
-      },
-    );
-    log('ConsoleWidget.build');
-
     final colorScheme = Theme.of(context).colorScheme;
     return Actions(
       actions: <Type, Action<Intent>>{
@@ -101,7 +96,7 @@ class _ConsoleWidgetState extends ConsumerState<ConsoleWidget> {
   }
 
   void _onSave(String value) {
-    ref.read(commandPromptNotifierProvider.notifier).onCommand(value);
+    ref.read(commandPromptControllerProvider).onCommand(value);
     _commandLineTextController.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _historyScrollController.animateTo(
@@ -110,5 +105,11 @@ class _ConsoleWidgetState extends ConsumerState<ConsoleWidget> {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
