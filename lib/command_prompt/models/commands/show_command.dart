@@ -53,7 +53,7 @@ class ShowCommand implements Command {
   @override
   String printUsage() {
     final List<String> usage = [
-      'Usage: switch <table>',
+      'Usage: show <table>',
       'Switches the current tab between the authors and books',
       'Available tables: ${_tables.join(', ')}',
     ];
