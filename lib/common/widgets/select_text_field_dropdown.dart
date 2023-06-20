@@ -66,9 +66,7 @@ class _SelectTextFieldDropdown<T> extends OverlayEntry {
                     title: Text(valueAsString),
                     onTap: () {
                       onSelected(value);
-                      print('onTap');
                       searchPhraseSubscription.cancel();
-                      // remove();
                     },
                   );
                 },
